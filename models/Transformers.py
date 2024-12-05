@@ -62,6 +62,8 @@ class Transformer(pl.LightningModule):
         self.loss_fn = nn.CrossEntropyLoss()
         self.accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=n_classes)
 
+        self.trainer = pl.Trainer(max_epochs=5)
+
     def forward(self, x):
         b = x.size(0)  # Batch size
         x = x.view(b, 28, 28)  # Shape: [batch_size, seq_len=28, input_dim=28] (each row is a token)
@@ -105,8 +107,7 @@ class Transformer(pl.LightningModule):
         return torch.optim.Adam(self.parameters(), lr=1e-4)
 
     def train(self, trainloader):
-        trainer = pl.Trainer(max_epochs=5)
-        trainer.fit(model, trainloader)
+        self.trainer.fit(model, trainloader)
     
     def get_probability_for_true_class(self, x, y):
         prob_list = torch.softmax(self.forward(x), dim=1)
