@@ -11,29 +11,37 @@ class CataForgetter():
 
     # get the CF for each data point
     def get_CF(self) -> list:
-        self.old_label = []
-        self.new_label = []
+        self.old_label_on_old_data = []
+        self.new_label_on_old_data = []
 
         # train the model on the old data
+        print("Training the model on the old data")
         self.model.train(self.old_data)
+        print("Computing the probability of the true class on the old data")
         with torch.no_grad():
             for i, data in enumerate(self.old_data):
                 inputs, labels = data
                 # get the probability of the true class
-                self.old_label.append(self.model.get_probability_for_true_class(inputs, labels))
+                batch_prob_list = self.model.get_probability_for_true_class(inputs, labels)
+                for prob in batch_prob_list:
+                    self.old_label_on_old_data.append(prob)
         
         # train the model on the new data
+        print("Training the model on the new data")
         self.model.train(self.new_data)
+        print("Computing the probability of the true class on the old data")
         with torch.no_grad():
-            for i, data in enumerate(self.new_data):
+            for i, data in enumerate(self.old_data):
                 inputs, labels = data
                 # get the probability of the true class
-                self.new_label.append(self.model.get_probability_for_true_class(inputs, labels))
+                batch_prob_list = self.model.get_probability_for_true_class(inputs, labels)
+                for prob in batch_prob_list:
+                    self.new_label_on_old_data.append(prob)
         
         # calculate the CF
         self.CF = []
-        for i in range(len(self.old_label)):
-            self.CF.append(self.new_label[i] / self.old_label[i])
+        for i in range(len(self.old_label_on_old_data)):
+            self.CF.append(self.new_label_on_old_data[i] / self.old_label_on_old_data[i])
         
         return self.CF
 

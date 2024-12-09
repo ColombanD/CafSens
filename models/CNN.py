@@ -30,7 +30,7 @@ class CNN(nn.Module):
     
     def train(self, dataloader):
         # Training the model
-        num_epochs = 1
+        num_epochs = 10
         for epoch in range(num_epochs):
             running_loss = 0.0
             for i, data in enumerate(dataloader, 0):
@@ -55,5 +55,8 @@ class CNN(nn.Module):
 
     def get_probability_for_true_class(self, x, y):
         prob_list = torch.softmax(self.forward(x), dim=1)
-        return prob_list[y]
+        prob_for_true_class = []
+        for i in range(len(prob_list)):
+            prob_for_true_class.append(prob_list[i][y[i]])
+        return prob_for_true_class
 
