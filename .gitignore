@@ -23,3 +23,5 @@ models/lightning_logs/version_1/events.out.tfevents.1733751018.student-net-hg-20
 models/lightning_logs/version_1/hparams.yaml
 models/lightning_logs/version_2/events.out.tfevents.1733751056.student-net-hg-2049.intern.ethz.ch.20040.0
 models/lightning_logs/version_2/hparams.yaml
+models/__pycache__/Classifier.cpython-312.pyc
+models/__pycache__/Transformers.cpython-312.pyc

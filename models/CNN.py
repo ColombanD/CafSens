@@ -4,7 +4,7 @@ import torch.optim as optim
 
 class CNN(nn.Module):
     def __init__(self):
-        super(CNN, self).__init__()
+        super().__init__()
         # Convolutional Layer 1
         self.conv1 = nn.Conv2d(3, 32, 3, padding=1)
         self.pool = nn.MaxPool2d(2, 2)
@@ -30,7 +30,7 @@ class CNN(nn.Module):
     
     def train(self, dataloader):
         # Training the model
-        num_epochs = 10
+        num_epochs = 1
         for epoch in range(num_epochs):
             running_loss = 0.0
             for i, data in enumerate(dataloader, 0):
@@ -53,13 +53,5 @@ class CNN(nn.Module):
 
         print('Finished Training')
 
-    # Based on the input x and the true label y, return the probability the model assigns to the true class
-    def get_probability_for_true_class(self, x, y):
-        # Softmax the output of the model to get the probabilities
-        prob_list = torch.softmax(self.forward(x), dim=1)
-        prob_for_true_class = []
-        # Since we have a batch of inputs, we need to get the probability of the true class for each input of the batch
-        for i in range(len(prob_list)):
-            prob_for_true_class.append(prob_list[i][y[i]])
-        return prob_for_true_class
+    
 

@@ -1,11 +1,12 @@
 import torch
 import torch.nn as nn
 import torch.utils.data.dataloader as dataloader
+from models.Classifier import Classifier
 
 
 class CataForgetter():
-    def __init__(self, model: nn.Module, old_data: dataloader, new_data: dataloader, classification: bool) -> None:
-        self.model = model
+    def __init__(self, classifier: Classifier, old_data: dataloader, new_data: dataloader, classification: bool) -> None:
+        self.classifier = classifier
         self.old_data = old_data
         self.new_data = new_data
         self.classification = classification
@@ -17,25 +18,25 @@ class CataForgetter():
 
         # train the model on the old data
         print("Training the model on the old data")
-        self.model.train(self.old_data)
+        self.classifier.model.train(self.old_data)
         print("Computing the probability of the true class on the old data")
         with torch.no_grad():
             for i, data in enumerate(self.old_data):
                 inputs, labels = data
                 # get the probability of the true class
-                batch_prob_list = self.model.get_probability_for_true_class(inputs, labels)
+                batch_prob_list = self.classifier.get_probability_for_true_class(inputs, labels)
                 for prob in batch_prob_list:
                     self.old_label_on_old_data.append(prob)
         
         # train the model on the new data
         print("Training the model on the new data")
-        self.model.train(self.new_data)
+        self.classifier.model.train(self.new_data)
         print("Computing the probability of the true class on the old data")
         with torch.no_grad():
             for i, data in enumerate(self.old_data):
                 inputs, labels = data
                 # get the probability of the true class
-                batch_prob_list = self.model.get_probability_for_true_class(inputs, labels)
+                batch_prob_list = self.classifier.get_probability_for_true_class(inputs, labels)
                 for prob in batch_prob_list:
                     self.new_label_on_old_data.append(prob)
         

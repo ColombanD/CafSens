@@ -3,8 +3,6 @@ from torch import nn
 import torch.nn.functional as F
 import pytorch_lightning as pl
 import torchmetrics
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
 
 
 # From Deep Learning Problem Sheet 6
@@ -87,12 +85,3 @@ class Transformer(pl.LightningModule):
 
     def train(self, trainloader):
         self.trainer.fit(self, trainloader)
-    
-    def get_probability_for_true_class(self, x, y):
-        # Softmax the output of the model to get the probabilities
-        prob_list = torch.softmax(self.forward(x), dim=1)
-        prob_for_true_class = []
-        # Since we have a batch of inputs, we need to get the probability of the true class for each input of the batch
-        for i in range(len(prob_list)):
-            prob_for_true_class.append(prob_list[i][y[i]])
-        return prob_for_true_class

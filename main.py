@@ -1,6 +1,7 @@
 from models.CNN import CNN
 from models.Transformers import Transformer
-import catastrophic_testing
+from models.Classifier import Classifier
+from catastrophic_testing import CataForgetter
 import torch
 import torchvision
 import torchvision.transforms as transforms
@@ -22,9 +23,15 @@ def main():
     trainloader_old = DataLoader(trainset_old, batch_size=4, shuffle=True, num_workers=2)
     trainloader_new = DataLoader(trainset_new, batch_size=4, shuffle=True, num_workers=2)
 
+    # Define a model
     model = CNN()
     # model = Transformer(input_dim=28, d_model=256, n_layers=6, heads=8, n_mlp=4, n_classes=10)
-    cata = catastrophic_testing.CataForgetter(model, trainloader_old, trainloader_new)
+
+    # Choose between a classifier and a Regressor
+    classifier = Classifier(model)
+
+    # Initiate the CataForgetter
+    cata = CataForgetter(classifier, trainloader_old, trainloader_new, True)
     CF = cata.get_CF()
     for cf in CF:
         print(cf)
