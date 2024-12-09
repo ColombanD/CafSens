@@ -2,6 +2,7 @@ from models.CNN import CNN
 from models.Transformers import Transformer
 from models.Classifier import Classifier
 from catastrophic_testing import CataForgetter
+from ClassiLoader import ClassiLoader
 import torch
 import torchvision
 import torchvision.transforms as transforms
@@ -19,9 +20,13 @@ def main():
     trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
 
     # split the training set into two parts, old and new
-    trainset_old, trainset_new = torch.utils.data.random_split(trainset, [40000, 10000])
+    liste = [[0,1,2,3,4],[5,6,7,8,9]]
+    D = ClassiLoader(trainset).split(liste)
+    trainloader_old, trainloader_new = D[0], D[1]
+
+    """trainset_old, trainset_new = torch.utils.data.random_split(trainset, [40000, 10000])
     trainloader_old = DataLoader(trainset_old, batch_size=4, shuffle=True, num_workers=2)
-    trainloader_new = DataLoader(trainset_new, batch_size=4, shuffle=True, num_workers=2)
+    trainloader_new = DataLoader(trainset_new, batch_size=4, shuffle=True, num_workers=2)"""
 
     # Define a model
     model = CNN()
