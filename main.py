@@ -1,4 +1,5 @@
 from models.CNN import CNN
+from models.Transformers import Transformer
 import catastrophic_testing
 import torch
 import torchvision
@@ -22,6 +23,7 @@ def main():
     trainloader_new = DataLoader(trainset_new, batch_size=4, shuffle=True, num_workers=2)
 
     model = CNN()
+    # model = Transformer(input_dim=28, d_model=256, n_layers=6, heads=8, n_mlp=4, n_classes=10)
     cata = catastrophic_testing.CataForgetter(model, trainloader_old, trainloader_new)
     CF = cata.get_CF()
     for cf in CF:

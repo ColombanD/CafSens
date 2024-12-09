@@ -4,10 +4,11 @@ import torch.utils.data.dataloader as dataloader
 
 
 class CataForgetter():
-    def __init__(self, model: nn.Module, old_data: dataloader, new_data: dataloader) -> None:
+    def __init__(self, model: nn.Module, old_data: dataloader, new_data: dataloader, classification: bool) -> None:
         self.model = model
         self.old_data = old_data
         self.new_data = new_data
+        self.classification = classification
 
     # get the CF for each data point
     def get_CF(self) -> list:
@@ -41,8 +42,10 @@ class CataForgetter():
         # calculate the CF
         self.CF = []
         for i in range(len(self.old_label_on_old_data)):
-            self.CF.append(self.new_label_on_old_data[i] / self.old_label_on_old_data[i])
-        
+            if self.classification == True:
+                self.CF.append(self.new_label_on_old_data[i] - self.old_label_on_old_data[i])
+            else:
+                return "Regression is not supported"
         return self.CF
 
 

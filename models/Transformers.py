@@ -82,54 +82,17 @@ class Transformer(pl.LightningModule):
         loss = self.loss_fn(logits, y)
         return loss
 
-    def validation_step(self, batch, batch_idx):
-        x, y = batch
-        logits = self(x)
-        loss = self.loss_fn(logits, y)
-        acc = self.accuracy(logits, y)
-        return {'val_loss': loss, 'val_acc': acc}
-
-    def on_validation_epoch_end(self):
-        avg_loss = torch.stack([x['val_loss'] for x in self.trainer.callback_metrics]).mean()
-        avg_acc = torch.stack([x['val_acc'] for x in self.trainer.callback_metrics]).mean()
-        self.log('val_loss', avg_loss, prog_bar=True)
-        self.log('val_acc', avg_acc, prog_bar=True)
-
-    def test_step(self, batch, batch_idx):
-        return self.validation_step(batch, batch_idx)
-
-    def test_epoch_end(self, outputs):
-        avg_loss = torch.stack([x['val_loss'] for x in outputs]).mean()
-        avg_acc = torch.stack([x['val_acc'] for x in outputs]).mean()
-        return {'test_loss': avg_loss, 'test_acc': avg_acc}
-
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=1e-4)
 
     def train(self, trainloader):
-        self.trainer.fit(model, trainloader)
+        self.trainer.fit(self, trainloader)
     
     def get_probability_for_true_class(self, x, y):
+        # Softmax the output of the model to get the probabilities
         prob_list = torch.softmax(self.forward(x), dim=1)
-        return prob_list[y]
-
-
-
-"""# MNIST Dataset loading and transformations
-transform = transforms.Compose([
-    transforms.ToTensor(),
-])
-
-# Load MNIST
-train_data = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
-test_data = datasets.MNIST(root='./data', train=False, download=True, transform=transform)
-
-train_loader = DataLoader(train_data, batch_size=64, shuffle=True)
-test_loader = DataLoader(test_data, batch_size=64)
-
-# Model Instantiation
-input_dim = 28  # Image size 28, for each row (token) in the transformer model
-model = Transformer(input_dim=input_dim, d_model=256, n_layers=6, heads=8, n_mlp=4, n_classes=10)
-
-# Training the model
-model.train(train_loader)"""
+        prob_for_true_class = []
+        # Since we have a batch of inputs, we need to get the probability of the true class for each input of the batch
+        for i in range(len(prob_list)):
+            prob_for_true_class.append(prob_list[i][y[i]])
+        return prob_for_true_class
