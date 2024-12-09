@@ -30,7 +30,7 @@ class CNN(nn.Module):
     
     def train(self, dataloader):
         # Training the model
-        num_epochs = 1
+        num_epochs = 2
         for epoch in range(num_epochs):
             running_loss = 0.0
             for i, data in enumerate(dataloader, 0):

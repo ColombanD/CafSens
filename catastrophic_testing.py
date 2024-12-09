@@ -19,6 +19,8 @@ class CataForgetter():
         # train the model on the old data
         print("Training the model on the old data")
         self.classifier.model.train(self.old_data)
+        #torch.save(self.classifier.model.state_dict(), "CNN_old_model.pth")
+        #self.classifier.model.load_state_dict(torch.load("CNN_old_model.pth"))
         print("Computing the probability of the true class on the old data")
         with torch.no_grad():
             for i, data in enumerate(self.old_data):
@@ -31,12 +33,15 @@ class CataForgetter():
         # train the model on the new data
         print("Training the model on the new data")
         self.classifier.model.train(self.new_data)
+        #torch.save(self.classifier.model.state_dict(), "CNN_new_model.pth")
+        #self.classifier.model.load_state_dict(torch.load("CNN_new_model.pth"))
         print("Computing the probability of the true class on the old data")
         with torch.no_grad():
             for i, data in enumerate(self.old_data):
                 inputs, labels = data
                 # get the probability of the true class
                 batch_prob_list = self.classifier.get_probability_for_true_class(inputs, labels)
+                
                 for prob in batch_prob_list:
                     self.new_label_on_old_data.append(prob)
         
@@ -44,7 +49,8 @@ class CataForgetter():
         self.CF = []
         for i in range(len(self.old_label_on_old_data)):
             if self.classification == True:
-                self.CF.append(self.new_label_on_old_data[i] - self.old_label_on_old_data[i])
+                #self.CF.append(self.new_label_on_old_data[i] / self.old_label_on_old_data[i])
+                self.CF.append((self.new_label_on_old_data[i], self.old_label_on_old_data[i]))
             else:
                 return "Regression is not supported"
         return self.CF

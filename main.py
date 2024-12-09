@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 
 # Dummy test
 def main():
-    # Load and normalize CIFAR-10 dataset
+    # Define a transformation for the images
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
