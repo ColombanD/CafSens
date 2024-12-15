@@ -1,3 +1,12 @@
+# This program implements a method that takes as input : a model, a training set and a test set corresponding to task1, 
+# a training set and a test set corresponding to task 2, 
+# and outputs a dictionnary of the following form: {old_test_set: forgetting metric}
+# Here is the method: 1. train model on old dataset
+#		              2. compute old_logits = model(old_test_dataset) 
+#                     3. train model on new dataset
+#                     4. compute new_logits = model(new_test_dataset)  // dim = len(new_test_dataset) x number of classes
+#                     5. get the logit of the true label for each sample, with the old and new logits
+#                     6. compute the forgetting metric: y_new_i/y_old_i
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -5,7 +14,7 @@ from torch.utils.data import DataLoader, Dataset, Subset
 from tqdm import tqdm
 
 class CFTest:
-    def __init__(self, model, old_testloader, new_trainloader, new_testloader, device=None, 
+    def __init__(self, model,old_trainloader, old_testloader, new_trainloader, new_testloader, device=None, 
                  learning_rate=0.01, momentum=0.9, criterion=None, epochs=10):
         """
         Initializes the CFTest class.
@@ -23,12 +32,44 @@ class CFTest:
         """
         self.device = device if device else torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = model.to(self.device)
+        self.old_trainloader = old_trainloader
         self.old_testloader = old_testloader
         self.new_trainloader = new_trainloader
         self.new_testloader = new_testloader
         self.criterion = criterion if criterion else nn.CrossEntropyLoss()
         self.optimizer = optim.SGD(self.model.parameters(), lr=learning_rate, momentum=momentum)
         self.epochs = epochs
+
+    def train_old(self):
+        """
+        Trains the model on the old training dataset for the specified number of epochs.
+        """
+        self.model.train()
+        for epoch in range(1, self.epochs + 1):
+            print(f'\nEpoch: {epoch}/{self.epochs}')
+            train_loss = 0.0
+            correct = 0
+            total = 0
+            for batch_idx, (inputs, targets) in enumerate(tqdm(self.old_trainloader, desc="Training")):
+                inputs, targets = inputs.to(self.device), targets.to(self.device)
+                # Shift targets to correspond to new class indices (10-14)
+                shifted_targets = targets + 10  # Assuming CIFAR-10 classes are 0-9, new classes 10-14
+                self.optimizer.zero_grad()
+                outputs = self.model(inputs)
+                loss = self.criterion(outputs, shifted_targets)
+                loss.backward()
+                self.optimizer.step()
+
+                train_loss += loss.item()
+                _, predicted = outputs.max(1)
+                total += shifted_targets.size(0)
+                correct += predicted.eq(shifted_targets).sum().item()
+
+                if (batch_idx + 1) % 100 == 0 or (batch_idx + 1) == len(self.new_trainloader):
+                    print(f'Batch {batch_idx+1}/{len(self.new_trainloader)} | '
+                          f'Loss: {train_loss/(batch_idx+1):.3f} | '
+                          f'Acc: {100.*correct/total:.3f}% ({correct}/{total})')
+
 
     def compute_logits(self, dataloader, output_indices=None):
         """
