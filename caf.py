@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
+import torch.nn.functional as F
 
 class Caf:
     """
@@ -111,23 +112,28 @@ class Caf:
         print(f"[test_new] Accuracy: {acc:.4f}")
         return acc
 
-    def get_true_logits(self):
+
+    def get_true_probs(self):
         """
-        Compute the true logits for each sample in test_old.
+        Compute the probability corresponding to the true class for each sample in test_old.
 
         Returns:
             A tensor of shape (N,) where N is the size of test_old,
-            containing the logit corresponding to the true class for each sample.
+            containing the probability for the true class for each sample.
         """
         self.model.eval()
-        true_logits = []
+        true_probs = []
         with torch.no_grad():
             for inputs, targets in self.test_old_loader:
                 inputs, targets = inputs.to(self.device), targets.to(self.device)
                 outputs = self.model(inputs)  # shape: [batch_size, num_classes]
-                batch_size = outputs.size(0)
-                # Extract the logit corresponding to the true label
-                # outputs[i, targets[i]] is the logit for the true label of the i-th sample
+            
+                # Convert logits to probabilities using softmax
+                probs = F.softmax(outputs, dim=1)  # shape: [batch_size, num_classes]
+
+                # Extract the probability corresponding to the true label for each sample
+                batch_size = probs.size(0)
                 for i in range(batch_size):
-                    true_logits.append(outputs[i, targets[i]].item())
-        return torch.tensor(true_logits)
+                    true_probs.append(probs[i, targets[i]].item())
+        return torch.tensor(true_probs)
+

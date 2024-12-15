@@ -64,7 +64,7 @@ def main():
     caf.history["test_old_acc_before"] = acc_old_before
 
     # 3. Get old_true_logits
-    old_true_logits = caf.get_true_logits()
+    old_true_logits = caf.get_true_probs()
 
     # 4. Train on new
     print("Training on new dataset...")
@@ -79,7 +79,7 @@ def main():
     caf.history["test_old_acc_after"] = acc_old_after
 
     # 7. Get new_true_logits
-    new_true_logits = caf.get_true_logits()
+    new_true_logits = caf.get_true_probs()
 
     # Compute ratio
     # Make sure no division by zero occurs. If old_true_logits are zero, consider a small epsilon.
