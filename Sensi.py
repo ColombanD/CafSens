@@ -1,4 +1,4 @@
-# Estimer la sensitivity d'un model aux inputs d'un dataset
+# Estimer la sensitivity d'un model aux inputs de l'entiereté d'un dataset
     # Train le model sur tout le dataset
     # Get les probs de la true class
     # Get la variance du posterior par variational inference
@@ -51,7 +51,7 @@ class Sensitivity:
 
     def softmax_hessian(self, probs, eps=1e-10):
         """
-        Approximation of softmax Hessian diagonal.
+        Approximation of softmax Hessian diagonal, it is a diagonal matrix: diag(p * (1-p)).
         """
         return torch.clamp(probs * (1 - probs), min=eps)
 
