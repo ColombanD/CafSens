@@ -1,167 +1,126 @@
-# Estimer la sensitivity d'un model aux inputs de l'entiereté d'un dataset
-    # Train le model sur tout le dataset
-    # Get les probs de la true class
-    # Get la variance du posterior par variational inference
-    # Utiliser la formule: residual * lambdas * variance Eq.12
+"""
+        ----- Model Sensitivity to Inputs -----
 
+This script estimates the sensitivity of a model to the inputs of a dataset, 
+based on the residuals, prediction variance (via variational inference), and 
+the softmax Hessian diagonal approximation. It follows the formula:
+    Sensitivity = Lambda * Variance * Residual (Eq. 12 from [1]).
+
+[1] Reference:
+    - Paper: "The Memory Perturbation Equation: Understanding Model's Sensitivity to Data"
+      (https://arxiv.org/abs/2310.19273)
+    - Github Repository: https://github.com/team-approx-bayes/memory-perturbation
+"""
 import numpy as np
-from laplace import Laplace
-from laplace.curvature import AsdlGGN
 import torch
 from torch.utils.data import DataLoader
 from torch.nn import functional as F
-import torch.nn as nn
-import torchvision
-import torchvision.transforms as transforms
-from tqdm import tqdm
+from laplace import Laplace
+from laplace.curvature import AsdlGGN
 
 
 class Sensitivity:
-    def __init__(self, model, dataloader, device='cuda'):
+    """
+    Computes model sensitivity to inputs using variational inference 
+    and softmax Hessian approximation.
+
+    Attributes:
+        model (torch.nn.Module): Model to compute the sensitivity on.
+        dataloader (DataLoader): Dataloader providing the dataset for sensitivity computation.
+        device (str): The device to perform computations on ('cuda' or 'cpu').
+    """
+    def __init__(self, model: torch.nn.Module, dataloader: DataLoader, device: str = 'cuda'):
         self.model = model.to(device)
         self.dataloader = dataloader
         self.device = device
-   
-    def compute_variance_infer(self):
+
+
+    def compute_variance_infer(self) -> np.ndarray:
         """
-        Variational Inference to estimate posterior variance.
+        Estimates prediction variance using variational inference with Laplace approximation.
+
+        Returns:
+            np.ndarray: Prediction variance for all data points in the dataloader.
+                        Shape: (num_samples, num_classes)
         """
-        print("In laplace")
+        # Initialize Laplace approximation
         laplace_object = Laplace(
             self.model, 'classification',
-            subset_of_weights='last_layer',
-            hessian_structure='diag',
-            backend=AsdlGGN)
-        print("In laplace created")
+            subset_of_weights='last_layer',  # Focus on last-layer weights
+            hessian_structure='diag',       # Diagonal Hessian approximation
+            backend=AsdlGGN
+        )
 
+        # Fit Laplace approximation using the training dataloader
         laplace_object.fit(self.dataloader)
-        print("In after laplace fit")
 
-        fvars = []
-        for inputs, _ in tqdm(self.dataloader, desc="Computing Variance"):
+        # Collect variance estimates for each input
+        variances = []
+        for inputs, _ in self.dataloader:
             inputs = inputs.to(self.device)
             _, fvar = laplace_object._glm_predictive_distribution(inputs)
-            fvars.append(np.diagonal(fvar.cpu().numpy(), axis1=1, axis2=2))
+            variances.append(np.diagonal(fvar.cpu().numpy(), axis1=1, axis2=2))
 
         del laplace_object
         torch.cuda.empty_cache()
 
-        return np.vstack(fvars)
+        return np.vstack(variances)
 
 
-    def softmax_hessian(self, probs, eps=1e-10):
+    def softmax_hessian(self, probs: torch.Tensor, eps: float = 1e-10) -> torch.Tensor:
         """
-        Approximation of softmax Hessian diagonal, it is a diagonal matrix: diag(p * (1-p)).
+        Computes the diagonal approximation of the Hessian for the softmax function.
+
+        Args:
+            probs (torch.Tensor): Predicted probabilities from the model. Shape: (batch_size, num_classes)
+            eps (float).
+
+        Returns:
+            torch.Tensor: The Hessian diagonal approximation. Shape: (batch_size, num_classes)
         """
         return torch.clamp(probs * (1 - probs), min=eps)
 
 
-    def get_sensitivities(self):
-        self.model.eval()
-        # Calculate num_classes by iterating through the dataloader
-        all_labels = []
-        for _, y in trainloader:
-            all_labels.extend(y.cpu().tolist())
+    def get_sensitivities(self) -> np.ndarray:
+        """
+        Computes sensitivities for the entire dataset based on the residuals, prediction variance (via variational inference), and 
+        the Hessian diagonal approximation.
 
-        num_classes = max(all_labels) + 1
+        Returns:
+            np.ndarray: Sensitivity values for each input sample. Shape: (num_samples,)
+        """
+        self.model.eval()  # Set model to evaluation mode
+
+        # Determine the number of classes from the dataset
+        num_classes = max(y.max().item() for _, y in self.dataloader) + 1
 
         residuals_list = []
         lambdas_list = []
 
-        for X, y in tqdm(self.dataloader, desc="Computing Residuals and Lambdas"):
+        for X, y in self.dataloader:
             X, y = X.to(self.device), y.to(self.device)
 
-            # Get model predictions
+            # Model predictions
             logits = self.model(X)
             probs = F.softmax(logits, dim=-1)
 
-            # Compute residuals
-            one_hot_y = F.one_hot(y, num_classes).float()  # Ensure data type compatibility
-            residuals_list.append((probs - one_hot_y).cpu().detach().numpy())
+            # Compute residuals for the true class
+            one_hot_y = F.one_hot(y, num_classes).float()
+            residuals = probs - one_hot_y
+            residuals_list.append(residuals.cpu().detach().numpy())
 
-            # Compute the Hessian approximation
+            # Compute softmax Hessian diagonal approximation
             lambdas = self.softmax_hessian(probs).cpu().detach().numpy()
             lambdas_list.append(lambdas)
 
         residuals = np.vstack(residuals_list)
         lambdas = np.vstack(lambdas_list)
 
-        # Use computed residuals and lambdas
-        print("Yes")
-        vars = self.compute_variance_infer()
-        print("No")
+        # Compute prediction variance
+        variances = self.compute_variance_infer()
 
-        # Compute sensitivities
-        sensitivities = lambdas * vars * residuals
-        sensitivities = np.sum(np.abs(sensitivities), axis=-1)
+        # Compute sensitivity: lambda * variance * residual
+        sensitivities = lambdas * variances * residuals
 
-        return sensitivities
-
-
-# Define a simple model
-class SimpleNet(nn.Module):
-    def __init__(self, num_classes=10):
-        super(SimpleNet, self).__init__()
-        self.features = nn.Sequential(
-            nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2)
-        )
-        self.classifier = nn.Sequential(
-            nn.Linear(16 * 16 * 16, 100),
-            nn.ReLU(),
-            nn.Linear(100, num_classes)
-        )
-
-    def forward(self, x):
-        x = self.features(x)
-        x = x.view(x.size(0), -1)
-        x = self.classifier(x)
-        return x
-
-# Load CIFAR-10 dataset
-transform = transforms.Compose([transforms.ToTensor()])
-trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-trainloader = DataLoader(trainset, batch_size=16, shuffle=True)
-
-# Instantiate model, loss, and optimizer
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
-print('Device:', device)
-model = SimpleNet(num_classes=10).to(device)
-
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
-
-# Training loop
-for epoch in range(1):  # Train for 2 epochs
-    model.train()
-    running_loss = 0.0
-
-    epoch_bar = tqdm(trainloader, desc=f"Epoch {epoch+1}", unit="batch")
-
-    for i, (inputs, labels) in enumerate(epoch_bar):
-        inputs, labels = inputs.to(device), labels.to(device)
-
-        # Forward pass
-        outputs = model(inputs)
-        loss = criterion(outputs, labels)
-
-        # Backward pass and optimization
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
-        running_loss += loss.item()
-
-        # Update the description with the running loss
-        epoch_bar.set_postfix(loss=running_loss / (i + 1))
-
-    print(f"Epoch {epoch+1}, Loss: {running_loss / len(trainloader)}")
-
-sensitivity_analyzer = Sensitivity(model, trainloader, device=device)
-
-# Compute sensitivities
-sensitivities = sensitivity_analyzer.get_sensitivities()
-
-print("Sensitivities:", sensitivities)
-print("sensitivities shape:", sensitivities.shape)
+        # Aggregate sensitivities for all classes
+        return np.sum(np.abs(sensitivities), axis=-1)
