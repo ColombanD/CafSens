@@ -116,3 +116,18 @@ class Caf:
                     true_probs.append(probs[i, targets[i]].item())
         return torch.tensor(true_probs)
 
+    def get_caf(self, old_true_probs, new_true_probs):
+        """
+        Compute the catastrophic forgetting (CAF) score.
+
+        Args:
+            old_true_probs (torch.Tensor): A tensor of shape (N,) containing the true probabilities
+                for the old test set.
+            new_true_probs (torch.Tensor): A tensor of shape (N,) containing the true probabilities
+                for the new test set.
+
+        Returns:
+            The CAF score.
+        """
+        eps = 1e-10
+        return (new_true_probs / old_true_probs + eps)

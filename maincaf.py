@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import pearsonr
 
-from caf import Caf
-from Sensi import Sensitivity
+from utils.caf import Caf
+from utils.Sensi import Sensitivity
 
 ### Example Model Definition ###
 class SimpleModel(nn.Module):

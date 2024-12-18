@@ -27,31 +27,7 @@ class CNN(nn.Module):
         x = torch.relu(self.fc1(x))
         x = self.fc2(x)
         return x
-    
-    def train(self, dataloader):
-        # Training the model
-        num_epochs = 1
-        for epoch in range(num_epochs):
-            running_loss = 0.0
-            for i, data in enumerate(dataloader, 0):
-                inputs, labels = data
-                # Zero the parameter gradients
-                self.optimizer.zero_grad()
-                
-                # Forward pass
-                outputs = self.forward(inputs)
-                loss = self.criterion(outputs, labels)
-                
-                # Backward pass and optimization
-                loss.backward()
-                self.optimizer.step()
-                
-                running_loss += loss.item()
-                if i % 1000 == 999:    # Print every 1000 mini-batches, where here batch = mini-batch
-                    print(f"[{epoch + 1}, {i + 1}] loss: {running_loss / 1000:.3f}")
-                    running_loss = 0.0
-
-        print('Finished Training')
+  
 
     
 
