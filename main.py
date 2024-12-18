@@ -21,7 +21,7 @@ def load_config(config_path='config.yaml'):
 # Function to parse the command-line arguments
 def parse_args():
     parser = argparse.ArgumentParser(description='Run the whole CAFSENS pipeline')
-    choices_model = ['CNN, Trasnformer']
+    choices_model = ['CNN', 'Transformer']
     choices_dataset = ['MNIST', 'FashionMNIST', 'CIFAR10']
     parser.add_argument('--model', default='CNN', type=str, choices=choices_model, help='model to use')
     parser.add_argument('--old-dataset', default='MNIST', type=str, choices=choices_dataset, help='old dataset to use')
@@ -54,20 +54,22 @@ def setup_logging(logging_path="logs/logs.log", logging_info="info"):
 
     return logger
 
-def load_model(model_name):
+def load_model(model_name, gray_scale):
     if model_name == 'CNN':
-        return CNN()
+        return CNN(gray_scale=gray_scale)
     elif model_name == 'Transformer':
-        return Transformer()
+        return Transformer(grayscale=gray_scale)
 
 def load_dataset(dataset_name):
+    "returns (dataset, greyscale)"
+
     transform = transforms.Compose([transforms.ToTensor()])
     if dataset_name == 'MNIST':
-        return datasets.MNIST(root="./data", train=True, download=True, transform=transform)
+        return datasets.MNIST(root="./data", train=True, download=True, transform=transform), True
     elif dataset_name == 'FashionMNIST':
-        return datasets.FashionMNIST(root="./data", train=True, download=True, transform=transform)
+        return datasets.FashionMNIST(root="./data", train=True, download=True, transform=transform), True
     elif dataset_name == 'CIFAR10':
-        return datasets.CIFAR10(root="./data", train=True, download=True, transform=transform)
+        return datasets.CIFAR10(root="./data", train=True, download=True, transform=transform), False
     
 
 # Main function
@@ -84,13 +86,14 @@ def main():
 
     # Set the device
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    logger.info(f"device: {device}")
+    
+    # Load the datasets
+    old_dataset, gray_scale = load_dataset(args.old_dataset)
+    new_dataset, _ = load_dataset(args.new_dataset)
 
     # Load the model
-    model = load_model(args.model)
-
-    # Load the datasets
-    old_dataset = load_dataset(args.old_dataset)
-    new_dataset = load_dataset(args.new_dataset)
+    model = load_model(args.model, gray_scale=gray_scale)
 
     # Split the datasets into train/test parts
     old_train_size = int(config['dataset']['old_train_ratio'] * len(old_dataset))
@@ -107,7 +110,6 @@ def main():
     train_new_loader = DataLoader(new_train_dataset, batch_size=config['training']['batch_size'], shuffle=True)
     test_new_loader = DataLoader(new_test_dataset, batch_size=config['training']['batch_size'], shuffle=False)
 
-
     # Initialize the CAF experiment
     caf = Caf(model, train_old_loader, test_old_loader, train_new_loader, test_new_loader, device=device)
     
@@ -115,6 +117,7 @@ def main():
     logger.info("Training on old dataset...")
     caf.train(epochs=config['training']['epochs_old'], lr=config['training']['learning_rate'], train_old=True)
     logger.info("Training on old dataset completed.")
+    torch.save(model.state_dict(), f"{args.model}_old.pth")
 
     # 2. Test on old
     logger.info("Testing on old dataset...")
@@ -129,6 +132,7 @@ def main():
     logger.info("Training on new dataset...")
     caf.train(epochs=config['training']['epochs_new'], lr=config['training']['learning_rate'], train_old=False)
     logger.info("Training on new dataset completed.")
+    torch.save(model.state_dict(), f"{args.model}_new.pth")
 
     # 5. Test on new
     logger.info("Testing on new dataset...")

@@ -4,13 +4,13 @@ dataset:
 
 training:
   batch_size: 64
-  epochs_new: 10
-  epochs_old: 5
+  epochs_new: 20
+  epochs_old: 20
   learning_rate: 0.001
 
 logging:
   path: logs/
-  level: info
+  level: INFO
 
 output:
   output_path: results/
