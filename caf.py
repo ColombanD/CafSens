@@ -34,9 +34,9 @@ class Caf:
             "test_new_acc": None
         }
 
-    def train_old(self, epochs=10, lr=1e-3):
+    def train(self, epochs=10, lr=1e-3, train_old=True):
         """
-        Train the model on the old training set.
+        Train the model on the either the old or the new training set.
         """
         self.model.train()
         optimizer = optim.Adam(self.model.parameters(), lr=lr)
@@ -44,7 +44,13 @@ class Caf:
 
         for epoch in range(epochs):
             running_loss = 0.0
-            for inputs, targets in self.train_old_loader:
+            if train_old:
+                loader = self.train_old_loader
+            else:
+                loader = self.train_new_loader
+
+            # Iterate over the dataset
+            for inputs, targets in loader:
                 inputs, targets = inputs.to(self.device), targets.to(self.device)
                 optimizer.zero_grad()
                 outputs = self.model(inputs)
@@ -53,65 +59,38 @@ class Caf:
                 optimizer.step()
                 running_loss += loss.item()
 
-            print(f"[train_old] Epoch {epoch+1}/{epochs}, Loss: {running_loss/len(self.train_old_loader):.4f}")
+            if train_old:
+                print(f"[train_old] Epoch {epoch+1}/{epochs}, Loss: {running_loss/len(self.train_old_loader):.4f}")
+            else:
+                print(f"[train_new] Epoch {epoch+1}/{epochs}, Loss: {running_loss/len(self.train_new_loader):.4f}")
 
-    def test_old(self):
+    def test(self, test_old=True):
         """
-        Test the model on the old test set and return accuracy.
+        Test the model on either the old test set or the new test set and return accuracy.
         """
         self.model.eval()
         correct = 0
         total = 0
         with torch.no_grad():
-            for inputs, targets in self.test_old_loader:
+            if test_old:
+                loader = self.test_old_loader
+            else:
+                loader = self.test_new_loader
+            
+            # Iterate over the dataset
+            for inputs, targets in loader:
                 inputs, targets = inputs.to(self.device), targets.to(self.device)
                 outputs = self.model(inputs)
                 _, predicted = torch.max(outputs, 1)
                 correct += (predicted == targets).sum().item()
                 total += targets.size(0)
         acc = correct / total
-        print(f"[test_old] Accuracy: {acc:.4f}")
+        if test_old:
+            print(f"[test_old] Accuracy: {acc:.4f}")
+        else:
+            print(f"[test_new] Accuracy: {acc:.4f}")
         return acc
-
-    def train_new(self, epochs=10, lr=1e-3):
-        """
-        Train the model on the new training set.
-        """
-        self.model.train()
-        optimizer = optim.Adam(self.model.parameters(), lr=lr)
-        criterion = nn.CrossEntropyLoss()
-
-        for epoch in range(epochs):
-            running_loss = 0.0
-            for inputs, targets in self.train_new_loader:
-                inputs, targets = inputs.to(self.device), targets.to(self.device)
-                optimizer.zero_grad()
-                outputs = self.model(inputs)
-                loss = criterion(outputs, targets)
-                loss.backward()
-                optimizer.step()
-                running_loss += loss.item()
-
-            print(f"[train_new] Epoch {epoch+1}/{epochs}, Loss: {running_loss/len(self.train_new_loader):.4f}")
-
-    def test_new(self):
-        """
-        Test the model on the new test set and return accuracy.
-        """
-        self.model.eval()
-        correct = 0
-        total = 0
-        with torch.no_grad():
-            for inputs, targets in self.test_new_loader:
-                inputs, targets = inputs.to(self.device), targets.to(self.device)
-                outputs = self.model(inputs)
-                _, predicted = torch.max(outputs, 1)
-                correct += (predicted == targets).sum().item()
-                total += targets.size(0)
-        acc = correct / total
-        print(f"[test_new] Accuracy: {acc:.4f}")
-        return acc
-
+    
 
     def get_true_probs(self):
         """
