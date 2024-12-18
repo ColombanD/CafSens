@@ -3,17 +3,23 @@ from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, transforms
 import torch.nn as nn
 import torch.nn.functional as F
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.stats import pearsonr
 
 from caf import Caf
+from Sensi import Sensitivity
 
 ### Example Model Definition ###
 class SimpleModel(nn.Module):
     def __init__(self, num_classes=10):
         super(SimpleModel, self).__init__()
-        self.fc = nn.Linear(28*28, num_classes)
+        self.hidden = nn.Linear(28*28, 128)
+        self.output = nn.Linear(128, num_classes)
     def forward(self, x):
         x = x.view(x.size(0), -1)
-        return self.fc(x)
+        x = F.relu(self.hidden(x))
+        return self.output(x)
 
 def main():
     # Hyperparameters & configuration
@@ -98,6 +104,52 @@ def main():
 
     # Analyze catastrophic forgetting: If old accuracy drops significantly and ratio < 1,
     # that suggests catastrophic forgetting.
+
+
+
+    global trainloader
+    trainloader = train_old_loader  # needed for Sensitivity class to infer num_classes
+
+    # Compute sensitivities for each sample in test_old
+    sens = Sensitivity(model, test_old_loader, device=device)
+    sensitivities = sens.get_sensitivities()  # D_sens = [test_old, sensitivities]
+
+    # Check dimensions
+    print("D_cf shape:", ratio.shape)
+    print("D_sens shape:", sensitivities.shape)
+
+    # Convert ratio and sensitivities to NumPy for analysis
+    D_cf = ratio.cpu().numpy() if torch.is_tensor(ratio) else ratio
+    D_sens = np.array(sensitivities)
+
+    # 4. Output a tensor/array of the form [test_old, sensitivities]
+    # D_sens corresponds to test_old samples in order. If you need a tensor:
+    D_sens_tensor = torch.tensor(D_sens)
+
+    # Analyze relation between D_cf and D_sens
+    # 1. Plot D_cf vs D_sens
+    plt.figure(figsize=(8,6))
+    plt.scatter(D_cf, D_sens, alpha=0.5)
+    plt.xlabel('Catastrophic Forgetting (D_cf)')
+    plt.ylabel('Sensitivity (D_sens)')
+    plt.title('D_cf vs D_sens')
+    plt.grid(True)
+    plt.show()
+
+    # 2. Compute some summary statistics (correlation)
+    corr, p_value = pearsonr(D_cf, D_sens)
+    print(f"Pearson correlation between D_cf and D_sens: {corr:.4f} (p-value: {p_value:.4e})")
+
+    print("D_cf mean:", np.mean(D_cf), "D_cf median:", np.median(D_cf))
+    print("D_sens mean:", np.mean(D_sens), "D_sens median:", np.median(D_sens))
+
+    # 3. Draw conclusions based on the correlation and the plot
+    if corr > 0.3:
+        print("Moderate positive correlation: samples with higher sensitivity tend to be forgotten more.")
+    elif corr < -0.3:
+        print("Moderate negative correlation: samples with higher sensitivity tend to be forgotten less.")
+    else:
+        print("Weak correlation: no strong linear relationship between sensitivity and catastrophic forgetting.")
 
 if __name__ == "__main__":
     main()
