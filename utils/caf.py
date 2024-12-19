@@ -17,12 +17,13 @@ class Caf:
         test_new_loader (DataLoader): DataLoader for the new test set.
         device (str): The device to run computations on.
     """
-    def __init__(self, model, train_old_loader, test_old_loader, train_new_loader, test_new_loader, device=None):
+    def __init__(self, model, train_old_loader, test_old_loader, train_new_loader, test_new_loader, logger, device=None):
         self.model = model
         self.train_old_loader = train_old_loader
         self.test_old_loader = test_old_loader
         self.train_new_loader = train_new_loader
         self.test_new_loader = test_new_loader
+        self.logger = logger
         
         self.device = device if device is not None else ("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
@@ -65,9 +66,9 @@ class Caf:
             scheduler.step()
 
             if train_old:
-                print(f"[train_old] Epoch {epoch+1}/{epochs}, Loss: {running_loss/len(self.train_old_loader):.4f}")
+                self.logger.info(f"[train_old] Epoch {epoch+1}/{epochs}, Loss: {running_loss/len(self.train_old_loader):.4f}")
             else:
-                print(f"[train_new] Epoch {epoch+1}/{epochs}, Loss: {running_loss/len(self.train_new_loader):.4f}")
+                self.logger.info(f"[train_new] Epoch {epoch+1}/{epochs}, Loss: {running_loss/len(self.train_new_loader):.4f}")
 
     def test(self, test_old=True):
         """
@@ -91,9 +92,9 @@ class Caf:
                 total += targets.size(0)
         acc = correct / total
         if test_old:
-            print(f"[test_old] Accuracy: {acc:.4f}")
+            self.logger.info(f"[test_old] Accuracy: {acc:.4f}")
         else:
-            print(f"[test_new] Accuracy: {acc:.4f}")
+            self.logger.info(f"[test_new] Accuracy: {acc:.4f}")
         return acc
     
 

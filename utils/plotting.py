@@ -1,4 +1,4 @@
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import torch
 import numpy as np
 
@@ -25,6 +25,8 @@ def tensor_to_numpy(data):
 def plot(sensitivity, caf, saving_path: str):
     sensitivity = tensor_to_numpy(sensitivity)
     caf = tensor_to_numpy(caf)
+    print(sensitivity.shape)
+    print(caf.shape)
     # Analyze relation between D_cf and D_sens
     plt.figure(figsize=(8,6))
     plt.scatter(sensitivity, caf, alpha=0.5)

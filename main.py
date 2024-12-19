@@ -112,7 +112,7 @@ def main():
     test_new_loader = DataLoader(new_test_dataset, batch_size=config['training']['batch_size'], shuffle=False)
 
     # Initialize the CAF experiment
-    caf = Caf(model, train_old_loader, test_old_loader, train_new_loader, test_new_loader, device=device)
+    caf = Caf(model, train_old_loader, test_old_loader, train_new_loader, test_new_loader, device=device, logger=logger)
     
     # 1. Train on old
     logger.info("Training on old dataset...")
