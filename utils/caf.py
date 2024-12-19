@@ -100,7 +100,7 @@ class Caf:
 
     def get_true_probs(self):
         """
-        Compute the probability corresponding to the true class for each sample in test_old.
+        Compute the probability corresponding to the true class for each sample in train_old.
 
         Returns:
             A tensor of shape (N,) where N is the size of test_old,
@@ -109,7 +109,7 @@ class Caf:
         self.model.eval()
         true_probs = []
         with torch.no_grad():
-            for inputs, targets in self.test_old_loader:
+            for inputs, targets in self.train_old_loader:
                 inputs, targets = inputs.to(self.device), targets.to(self.device)
                 outputs = self.model(inputs)  # shape: [batch_size, num_classes]
             
@@ -120,6 +120,7 @@ class Caf:
                 batch_size = probs.size(0)
                 for i in range(batch_size):
                     true_probs.append(probs[i, targets[i]].item())
+        print(f'true_probs size: {len(true_probs)}')
         return torch.tensor(true_probs)
 
     def get_caf(self, old_true_probs, new_true_probs):
