@@ -98,7 +98,7 @@ class Caf:
         return acc
     
 
-    def get_true_probs(self):
+    def get_true_probs(self, train=True):
         """
         Compute the probability corresponding to the true class for each sample in train_old.
 
@@ -108,8 +108,12 @@ class Caf:
         """
         self.model.eval()
         true_probs = []
+        if train:
+            loader = self.train_old_loader
+        else:
+            loader = self.train_new_loader
         with torch.no_grad():
-            for inputs, targets in self.train_old_loader:
+            for inputs, targets in loader:
                 inputs, targets = inputs.to(self.device), targets.to(self.device)
                 outputs = self.model(inputs)  # shape: [batch_size, num_classes]
             

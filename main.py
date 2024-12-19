@@ -127,7 +127,8 @@ def main():
     caf.history["test_old_acc_before"] = acc_old_before
 
     # 3. Get old_true_logits
-    old_true_logits = caf.get_true_probs()
+    old_true_logits_train = caf.get_true_probs(train=True)
+    old_true_logits_test = caf.get_true_probs(train=False)
 
     # 4. Train on new
     logger.info("Training on new dataset...")
@@ -148,19 +149,26 @@ def main():
     caf.history["test_old_acc_after"] = acc_old_after
 
     # 7. Get new_true_logits
-    new_true_logits = caf.get_true_probs()
+    new_true_logits_train = caf.get_true_probs(train=True)
+    new_true_logits_test = caf.get_true_probs(train=False)
 
     # Get CAF score
-    caf_score = caf.get_caf(old_true_probs=old_true_logits, new_true_probs=new_true_logits)
-    logger.info(f"CAF score mean: {caf_score.mean()}, CAF score std: {caf_score.std()}")
+    caf_score_train = caf.get_caf(old_true_probs=old_true_logits_train, new_true_probs=new_true_logits_train)
+    logger.info(f"CAF train score mean: {caf_score_train.mean()}, CAF train score std: {caf_score_train.std()}")
+    caf_score_test = caf.get_caf(old_true_probs=old_true_logits_test, new_true_probs=new_true_logits_test)
+    logger.info(f"CAF test score mean: {caf_score_test.mean()}, CAF test score std: {caf_score_test.std()}")
 
     # Compute sensitivity
-    sensitivity = Sensitivity(model=model, dataloader=train_old_loader, device=device)
-    sensitivities = sensitivity.get_sensitivities()
-    logger.info(f"Sensitivity mean: {sensitivities.mean()}, Sensitivity std: {sensitivities.std()}")
+    sensitivity_train = Sensitivity(model=model, dataloader=train_old_loader, device=device)
+    sensitivity_test = Sensitivity(model=model, dataloader=test_old_loader, device=device)
+    sensitivities_train = sensitivity_train.get_sensitivities()
+    sensitivities_test = sensitivity_test.get_sensitivities()
+    logger.info(f"Sensitivity mean: {sensitivities_train.mean()}, Sensitivity std: {sensitivities_train.std()}")
+    logger.info(f"Sensitivity mean: {sensitivities_test.mean()}, Sensitivity std: {sensitivities_test.std()}")
 
     # Plot the results
-    plot(sensitivity=sensitivities, caf=caf_score, saving_path=f"/results/{args.model}_{args.old_dataset}_{args.new_dataset}.png")
+    plot(sensitivity=sensitivities_train, caf=caf_score_train, saving_path=f"/results/{args.model}_{args.old_dataset}_{args.new_dataset}_train.png")
+    plot(sensitivity=sensitivities_test, caf=caf_score_test, saving_path=f"/results/{args.model}_{args.old_dataset}_{args.new_dataset}.png")
 
 
 if "__main__" == __name__:
