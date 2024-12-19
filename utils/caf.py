@@ -40,6 +40,8 @@ class Caf:
         """
         self.model.train()
         optimizer = optim.Adam(self.model.parameters(), lr=lr)
+        scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+
         criterion = nn.CrossEntropyLoss()
 
         for epoch in range(epochs):
@@ -58,6 +60,9 @@ class Caf:
                 loss.backward()
                 optimizer.step()
                 running_loss += loss.item()
+            
+            # Step the scheduler: reduce the LR by a constant factor gamma every step_size epoch. For stability
+            scheduler.step()
 
             if train_old:
                 print(f"[train_old] Epoch {epoch+1}/{epochs}, Loss: {running_loss/len(self.train_old_loader):.4f}")

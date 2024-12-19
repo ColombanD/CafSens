@@ -2,10 +2,8 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 import pytorch_lightning as pl
-import torchmetrics
 
-
-# From Deep Learning Problem Sheet 6
+# Inspired from Deep Learning Problem Sheet 6
 
 class SelfAttention(nn.Module):
     def __init__(self, d: int, heads: int = 8):
@@ -51,21 +49,24 @@ class TransformerBlock(nn.Module):
 
 
 class Transformer(pl.LightningModule):
-    def __init__(self, input_dim: int, d_model: int = 256, n_layers: int = 6, heads: int = 8, n_mlp: int = 4, n_classes: int = 10):
+    def __init__(self, grayscale=True, patch_size: int = 7, d_model: int = 256, n_layers: int = 10, heads: int = 8, n_mlp: int = 4, n_classes: int = 10):
         super().__init__()
         self.d_model = d_model
-        self.token_projection = nn.Linear(input_dim, d_model)
+        # For Vision Transformers, divide image into patches
+        self.patch_size = patch_size
+        if grayscale:
+            self.patch_embedding = nn.Conv2d(1, d_model, kernel_size=patch_size, stride=patch_size)
+        else:
+            self.patch_embedding = nn.Conv2d(3, d_model, kernel_size=patch_size, stride=patch_size)
+ 
+
         self.blocks = nn.ModuleList([TransformerBlock(d_model, heads, n_mlp) for _ in range(n_layers)])
         self.fc_out = nn.Linear(d_model, n_classes)
-        self.loss_fn = nn.CrossEntropyLoss()
-        self.accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=n_classes)
-
-        self.trainer = pl.Trainer(max_epochs=5)
 
     def forward(self, x):
         b = x.size(0)  # Batch size
-        x = x.view(b, 28, 28)  # Shape: [batch_size, seq_len=28, input_dim=28] (each row is a token)
-        x = self.token_projection(x)  # Shape: [batch_size, seq_len=28, d_model]
+        x = self.patch_embedding(x)
+        x = x.flatten(2).transpose(1,2)
         
         # Pass through each transformer block
         for block in self.blocks:
@@ -73,15 +74,3 @@ class Transformer(pl.LightningModule):
         
         logits = self.fc_out(x.mean(dim=1))  # Shape: [batch_size, n_classes]
         return logits
-
-    def training_step(self, batch, batch_idx):
-        x, y = batch
-        logits = self(x)
-        loss = self.loss_fn(logits, y)
-        return loss
-
-    def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=1e-4)
-
-    def train(self, trainloader):
-        self.trainer.fit(self, trainloader)

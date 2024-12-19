@@ -9,6 +9,7 @@ from torchvision import transforms, datasets
 
 from utils.caf import Caf
 from utils.Sensi import Sensitivity
+from utils.plotting import plot
 from models.CNN import CNN
 from models.Transformer import Transformer
 
@@ -159,6 +160,7 @@ def main():
     logger.info(f"Sensitivity mean: {sensitivities.mean()}, Sensitivity std: {sensitivities.std()}")
 
     # Plot the results
+    plot(sensitivity=sensitivities, caf=caf_score, saving_path=f"/results/{args.model}_{args.old_dataset}_{args.new_dataset}.png")
 
 
 if "__main__" == __name__:
