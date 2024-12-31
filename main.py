@@ -5,13 +5,15 @@ from logging.handlers import RotatingFileHandler
 
 import torch
 from torch.utils.data import random_split, DataLoader
-from torchvision import transforms, datasets
+from torchvision import transforms, datasets, models
 
 from utils.caf import Caf
 from utils.Sensi import Sensitivity
 from utils.plotting import plot
 from models.CNN import CNN
 from models.Transformer import Transformer
+from scipy.stats import pearsonr, spearmanr, kendalltau
+
 
 # Function to load the configuration file
 def load_config(config_path='config.yaml'):
@@ -22,7 +24,7 @@ def load_config(config_path='config.yaml'):
 # Function to parse the command-line arguments
 def parse_args():
     parser = argparse.ArgumentParser(description='Run the whole CAFSENS pipeline')
-    choices_model = ['CNN', 'Transformer']
+    choices_model = ['CNN', 'Transformer', 'AlexNet', 'Resnet18']
     choices_dataset = ['MNIST', 'FashionMNIST', 'CIFAR10']
     parser.add_argument('--model', default='CNN', type=str, choices=choices_model, help='model to use')
     parser.add_argument('--old-dataset', default='MNIST', type=str, choices=choices_dataset, help='old dataset to use')
@@ -60,6 +62,10 @@ def load_model(model_name, gray_scale):
         return CNN(gray_scale=gray_scale)
     elif model_name == 'Transformer':
         return Transformer(grayscale=gray_scale)
+    elif model_name == 'AlexNet':
+        return models.alexnet(pretrained=False)
+    elif model_name == 'Resnet18':
+        return models.rensnet18(pretrained=False)
 
 def load_dataset(dataset_name):
     "returns (dataset, greyscale)"
@@ -169,6 +175,26 @@ def main():
     # Plot the results
     plot(sensitivity=sensitivities_train, caf=caf_score_train, saving_path=f"/results/{args.model}_{args.old_dataset}_{args.new_dataset}_train.png")
     plot(sensitivity=sensitivities_test, caf=caf_score_test, saving_path=f"/results/{args.model}_{args.old_dataset}_{args.new_dataset}.png")
+    
+    # Compute some summary statistics (correlation)
+    corr_train, p_value_train = pearsonr(caf_score_train, sensitivities_train)
+    corr_test, p_value_test = pearsonr(caf_score_test, sensitivities_test)
+    logger.info(f"Pearson correlation during training between CF and Sensitivity: {corr_train:.4f} (p-value: {p_value_train:.4e})")
+    logger.info(f"Pearson correlation during testing between CF and Sensitivity: {corr_test:.4f} (p-value: {p_value_test:.4e})")
+
+    # Spearman’s rank correlation
+    rho_train, pval_spear_train = spearmanr(caf_score_train, sensitivities_train)
+    rho_test, pval_spear_test = spearmanr(caf_score_test, sensitivities_test)
+    logger.info(f"Spearman correlation during training between CF an Sensitivity: {rho_train:.4f}, (p value {pval_spear_train:4e})")
+    logger.info(f"Spearman correlation during testing between CF an Sensitivity: {rho_test:.4f}, (p value {pval_spear_test:4e})")
+
+    # Kendall’s tau
+    tau_train, pval_kend_train = kendalltau(caf_score_train, sensitivities_train)
+    tau_test, pval_kend_test = kendalltau(caf_score_test, sensitivities_test)
+    logger.info(f"Kendall correlation during training between CF an Sensitivity: {tau_train:.4f}, (p value {pval_kend_train:4e})")
+    logger.info(f"Kendall correlation during testing between CF an Sensitivity: {tau_test:.4f}, (p value {pval_kend_test:4e})")
+
+    
 
 
 if "__main__" == __name__:
