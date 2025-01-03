@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 class CNN(nn.Module):
-    def __init__(self, gray_scale=False):
+    def __init__(self, gray_scale=False, num_classes=10):
         super().__init__()
         # Convolutional Layer 1
         if gray_scale:
@@ -15,7 +15,7 @@ class CNN(nn.Module):
         self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
         # Fully Connected Layer 1
         self.fc1 = nn.Linear(64 * 7 * 7, 512)
-        self.fc2 = nn.Linear(512, 10)  # 10 output classes for CIFAR-10
+        self.fc2 = nn.Linear(512, num_classes)  # 10 output classes for CIFAR-10
 
 
     def forward(self, x):

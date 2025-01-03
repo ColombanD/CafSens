@@ -1,11 +1,9 @@
 dataset:
-  old_train_ratio: 0.8
-  new_train_ratio: 0.8
+  train_ratio: 0.8 
 
 training:
   batch_size: 64
-  epochs_new: 20
-  epochs_old: 20
+  epochs: 3
   learning_rate: 0.001
 
 logging:

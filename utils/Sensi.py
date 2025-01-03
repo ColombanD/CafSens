@@ -91,9 +91,6 @@ class Sensitivity:
         """
         self.model.eval()  # Set model to evaluation mode
 
-        # Determine the number of classes from the dataset
-        num_classes = max(y.max().item() for _, y in self.dataloader) + 1
-
         residuals_list = []
         lambdas_list = []
 
@@ -105,7 +102,7 @@ class Sensitivity:
             probs = F.softmax(logits, dim=-1)
 
             # Compute residuals for the true class
-            one_hot_y = F.one_hot(y, num_classes).float()
+            one_hot_y = F.one_hot(y, probs.shape[1]).float()
             residuals = probs - one_hot_y
             residuals_list.append(residuals.cpu().detach().numpy())
 

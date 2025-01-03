@@ -11,33 +11,25 @@ class Caf:
 
     Attributes:
         model (nn.Module): The neural network model.
-        train_old_loader (DataLoader): DataLoader for the old training set.
-        test_old_loader (DataLoader): DataLoader for the old test set.
-        train_new_loader (DataLoader): DataLoader for the new training set.
-        test_new_loader (DataLoader): DataLoader for the new test set.
+        list_train_loaders (list of DataLoaders): DataLoaders for the different training phases
+        list_test_loaders (list of DataLoaders): DataLoaders for the different test phases
         device (str): The device to run computations on.
     """
-    def __init__(self, model, train_old_loader, test_old_loader, train_new_loader, test_new_loader, logger, device=None):
+    def __init__(self, model, list_train_loaders, list_test_loaders, logger, device=None):
         self.model = model
-        self.train_old_loader = train_old_loader
-        self.test_old_loader = test_old_loader
-        self.train_new_loader = train_new_loader
-        self.test_new_loader = test_new_loader
+        self.list_train_loaders = list_train_loaders
+        self.list_test_loaders = list_test_loaders
         self.logger = logger
         
         self.device = device if device is not None else ("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
 
         # For logging or debugging
-        self.history = {
-            "test_old_acc_before": None,
-            "test_old_acc_after": None,
-            "test_new_acc": None
-        }
+        self.history = {}
 
-    def train(self, epochs=10, lr=1e-3, train_old=True):
+    def train(self, epochs=10, lr=1e-3, train_nbr=0):
         """
-        Train the model on the either the old or the new training set.
+        Train the model on a training set.
         """
         self.model.train()
         optimizer = optim.Adam(self.model.parameters(), lr=lr)
@@ -47,10 +39,7 @@ class Caf:
 
         for epoch in range(epochs):
             running_loss = 0.0
-            if train_old:
-                loader = self.train_old_loader
-            else:
-                loader = self.train_new_loader
+            loader = self.list_train_loaders[train_nbr]
 
             # Iterate over the dataset
             for inputs, targets in loader:
@@ -64,24 +53,18 @@ class Caf:
             
             # Step the scheduler: reduce the LR by a constant factor gamma every step_size epoch. For stability
             scheduler.step()
+            self.logger.info(f"[train nbr {train_nbr}] Epoch {epoch+1}/{epochs}, Loss: {running_loss/len(loader):.4f}")
 
-            if train_old:
-                self.logger.info(f"[train_old] Epoch {epoch+1}/{epochs}, Loss: {running_loss/len(self.train_old_loader):.4f}")
-            else:
-                self.logger.info(f"[train_new] Epoch {epoch+1}/{epochs}, Loss: {running_loss/len(self.train_new_loader):.4f}")
 
-    def test(self, test_old=True):
+    def test(self, test_nbr):
         """
-        Test the model on either the old test set or the new test set and return accuracy.
+        Test the model on a test set and return accuracy.
         """
         self.model.eval()
         correct = 0
         total = 0
         with torch.no_grad():
-            if test_old:
-                loader = self.test_old_loader
-            else:
-                loader = self.test_new_loader
+            loader = self.list_test_loaders[test_nbr]
             
             # Iterate over the dataset
             for inputs, targets in loader:
@@ -91,27 +74,23 @@ class Caf:
                 correct += (predicted == targets).sum().item()
                 total += targets.size(0)
         acc = correct / total
-        if test_old:
-            self.logger.info(f"[test_old] Accuracy: {acc:.4f}")
-        else:
-            self.logger.info(f"[test_new] Accuracy: {acc:.4f}")
-        return acc
-    
+        self.logger.info(f"[test nbr {test_nbr}] Accuracy: {acc:.4f}")
+        return acc  
 
-    def get_true_probs(self, train=True):
+    def get_true_probs(self, train=True, dataset_nbr=0):
         """
-        Compute the probability corresponding to the true class for each sample in train_old.
+        Compute the probability corresponding to the true class for train or test and a specific dataset.
 
         Returns:
-            A tensor of shape (N,) where N is the size of test_old,
+            A tensor of shape (N,) where N is the size of the dataset,
             containing the probability for the true class for each sample.
         """
         self.model.eval()
         true_probs = []
         if train:
-            loader = self.train_old_loader
+            loader = self.list_train_loaders[dataset_nbr]
         else:
-            loader = self.train_new_loader
+            loader = self.list_test_loaders[dataset_nbr]
         with torch.no_grad():
             for inputs, targets in loader:
                 inputs, targets = inputs.to(self.device), targets.to(self.device)
