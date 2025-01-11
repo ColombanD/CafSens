@@ -12,7 +12,7 @@ epochs: 3
 learning_rate: 0.001
 
 # Logging
-logging_path: ./logs/log
+logging_path: ./logs/default
 logging_level: INFO
 
 # Results

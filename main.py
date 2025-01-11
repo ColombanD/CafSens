@@ -31,8 +31,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Run the whole CAFSENS pipeline')
     choices_model = ['CNN', 'Transformer', 'AlexNet', 'Resnet18']
     choices_dataset = ['MNIST', 'FashionMNIST', 'CIFAR10', 'CIFAR100']
-    parser.add_argument('--model', default='CNN', type=str, choices=choices_model, help='model to use')
     parser.add_argument('--config', type=str, help='path to config file')
+    parser.add_argument('--model', default='CNN', type=str, choices=choices_model, help='model to use')
     parser.add_argument('--split-indices', default=None, nargs="+", type=str, help='If only one dataset was given, list of indices representing the classes to split the dataset into, e.g. "[0, 1, 2]" "[3, 4, 5]" "[6, 7, 8, 9]"')
     parser.add_argument('--datasets', nargs="+", type=str, choices=choices_dataset, help='datasets to use, can be multiple')
     parser.add_argument('--exp-tag', type=str, default="Last Experiment", help="Experiment tag.")
@@ -129,7 +129,10 @@ def main():
         logger.info(f"Training on dataset {dataset_name} ...")
         caf.train(epochs=config['epochs'], lr=config['learning_rate'], train_nbr=i)
         logger.info(f"Training completed.")
-        torch.save(model.state_dict(), f"./models/{args.model}_{i}_train.pth")
+
+        saving_path = f"./models_weights/{args.model}_{dataset_name}.pth"
+        os.makedirs(os.path.dirname(saving_path), exist_ok=True) 
+        torch.save(model.state_dict(), saving_path)
 
         # Test on dataset i
         logger.info(f"Testing on dataset {dataset_name}...")

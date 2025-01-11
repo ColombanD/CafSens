@@ -4,7 +4,7 @@ datasets: ["CIFAR10"]
 split_indices: ["[0, 1, 2, 3, 4]", "[5, 6, 7, 8, 9]"]
 
 # Model
-model: "resnet18"
+model: "Resnet18"
 
 # Training
 batch_size: 64
@@ -12,7 +12,7 @@ epochs: 5
 learning_rate: 0.001
 
 # Logging
-logging_path: ./logs/log
+logging_path: ./logs/cifar10_resnet18
 logging_level: INFO
 
 # Results
