@@ -14,10 +14,6 @@ Welcome to **CafSens**, a codebase designed to study catastrophic forgetting and
 4. [Installation & Environment](#installation--environment)
 5. [Usage](#usage)
 6. [Configuration Files](#configuration-files)
-7. [Running Experiments](#running-experiments)
-8. [Analyzing Results](#analyzing-results)
-9. [Common Issues](#common-issues)
-10. [License](#license)
 
 ## Overview
 
