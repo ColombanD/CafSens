@@ -1,0 +1,20 @@
+# Datasets
+train_ratio: 0.8
+datasets: ["CIFAR10"]
+split_indices: ["[0, 1, 2, 3, 4]", "[5, 6, 7, 8, 9]"]
+
+# Model
+model: "resnet18"
+
+# Training
+batch_size: 64
+epochs: 5
+learning_rate: 0.001
+
+# Logging
+logging_path: ./logs/log
+logging_level: INFO
+
+# Results
+exp_tag: "Cifar10 Resnet18 Experiment"
+

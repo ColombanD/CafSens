@@ -53,7 +53,7 @@ class Caf:
             
             # Step the scheduler: reduce the LR by a constant factor gamma every step_size epoch. For stability
             scheduler.step()
-            self.logger.info(f"[train nbr {train_nbr}] Epoch {epoch+1}/{epochs}, Loss: {running_loss/len(loader):.4f}")
+            self.logger.info(f"Epoch {epoch+1}/{epochs}, Loss: {running_loss/len(loader):.4f}")
 
 
     def test(self, test_nbr):
@@ -103,7 +103,6 @@ class Caf:
                 batch_size = probs.size(0)
                 for i in range(batch_size):
                     true_probs.append(probs[i, targets[i]].item())
-        print(f'true_probs size: {len(true_probs)}')
         return torch.tensor(true_probs)
 
     def get_caf(self, old_true_probs, new_true_probs):

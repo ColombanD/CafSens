@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
 
 class CNN(nn.Module):
     def __init__(self, gray_scale=False, num_classes=10):

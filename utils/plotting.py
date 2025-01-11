@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import torch
 import numpy as np
+import textwrap
 
 def tensor_to_numpy(data):
     """
@@ -29,7 +30,7 @@ def plot(sensitivity, caf, saving_path: str, title: str):
     plt.scatter(sensitivity, caf, alpha=0.5)
     plt.xlabel('Catastrophic Forgetting (D_cf)')
     plt.ylabel('Sensitivity (D_sens)')
-    plt.title(title)
+    plt.title("\n".join(textwrap.wrap(title, 60)))
     plt.grid(True)
     plt.xscale('log')  # Log scale for x-axis
     plt.yscale('log')  # Log scale for y-axis

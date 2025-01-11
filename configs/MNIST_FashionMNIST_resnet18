@@ -1,0 +1,19 @@
+# Datasets
+train_ratio: 0.8
+datasets: ["MNIST", "FashionMNIST"]
+
+# Model
+model: "resnet18"
+
+# Training
+batch_size: 64
+epochs: 10
+learning_rate: 0.001
+
+# Logging
+logging_path: ./logs/log
+logging_level: INFO
+
+# Results
+exp_tag: "MNIST FashionMNIST resnet18 Experiment"
+
