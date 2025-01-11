@@ -49,3 +49,6 @@ utils/__pycache__/sensitivity.cpython-312.pyc
 utils/__pycache__/transforms.cpython-312.pyc
 models/__pycache__/Transformer.cpython-312.pyc
 utils/__pycache__/caf.cpython-312.pyc
+checklist.txt
+models/__pycache__/Transformer.cpython-312.pyc
+utils/__pycache__/caf.cpython-312.pyc
