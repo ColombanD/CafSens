@@ -1,4 +1,8 @@
-# Improved implementation of CFTest
+"""
+Description: 
+This file contains the implementation of the Caf class, which encapsulates the catastrophic forgetting experiment setup.
+"""
+
 import torch
 import torch.nn as nn
 import torch.optim as optim

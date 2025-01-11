@@ -1,5 +1,6 @@
 """
-
+Description:
+Small CNN model for image classification
 """
 
 import torch

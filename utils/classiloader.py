@@ -1,6 +1,5 @@
 """
-        ----- Dataset Splitting -----
-
+Description:
 This script facilitates custom grouping of classes for splitting datasets. 
 """
 import numpy as np

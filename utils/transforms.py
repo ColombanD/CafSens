@@ -1,3 +1,7 @@
+"""Description: 
+This file contains the function to load the transforms for the models
+"""
+
 from torchvision import transforms
 
 def load_transform(model_name):

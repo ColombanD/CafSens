@@ -1,3 +1,7 @@
+"""Description:
+Pipeline to run the CAFSENS experiment
+"""
+
 import yaml
 import argparse
 import logging
@@ -152,7 +156,7 @@ def main():
         true_test_logits.append(true_test_logits_i)
 
         # Compute the sensibility of the i-th dataset
-        logger.info(f"Computing sensitivities for dataset {args.datasets[i]} ...")
+        logger.info(f"Computing sensitivities for dataset {dataset_name} ...")
         sensey_train = Sensitivity(model=model, dataloader=train_loaders[i], device=device)
         sensey_test = Sensitivity(model=model, dataloader=test_loaders[i], device=device)
         sensi_train.append(sensey_train.get_sensitivities())
@@ -160,6 +164,7 @@ def main():
 
         
     # Get CAF scores for each dataset: [i][j] corresponds to the CAF score for dataset i, comparing state at training j with state at training j+1
+    # i represents the i-th dataset, j represents the j-th training
     caf_scores_train = []
     caf_scores_test = []
     logger.info(f'Computing CAF score...')
@@ -181,13 +186,13 @@ def main():
             # For naming in printing and saving, we assume that the datasets are given in the same order as the train_loaders
             train_name_i = args.datasets[i]
             test_name_i = args.datasets[i]
-            train_name_j = args.datasets[j+1]
-            test_name_j = args.datasets[j+1]
+            train_name_j = args.datasets[i+j+1]
+            test_name_j = args.datasets[i+j+1]
             if args.split_indices is not None:
                 train_name_i = f"{train_name_i}_{args.split_indices[i]}"
                 test_name_i = f"{test_name_i}_{args.split_indices[i]}"
-                train_name_j = f"{train_name_j}_{args.split_indices[j+1]}"
-                test_name_j = f"{test_name_j}_{args.split_indices[j+1]}"
+                train_name_j = f"{train_name_j}_{args.split_indices[i+j+1]}"
+                test_name_j = f"{test_name_j}_{args.split_indices[i+j+1]}"
 
             plot_path_train = os.path.join(result_directory, f"train_{train_name_i}_{train_name_j}")
             plot_path_test = os.path.join(result_directory, f"test_{test_name_i}_{test_name_j}")

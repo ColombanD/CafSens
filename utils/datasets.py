@@ -1,3 +1,8 @@
+"""
+Description: 
+This file contains the function to load the datasets.
+"""
+
 from torchvision import datasets, transforms
 from utils.classiloader import ClassiLoader
 import ast

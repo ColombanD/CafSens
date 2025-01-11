@@ -1,3 +1,7 @@
+"""Description
+This script contains the function to plot the relationship between catastrophic forgetting and sensitivity.
+"""
+
 import matplotlib.pyplot as plt
 import torch
 import numpy as np

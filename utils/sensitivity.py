@@ -1,6 +1,5 @@
 """
-        ----- Model Sensitivity to Inputs -----
-
+Description:
 This script estimates the sensitivity of a model to the inputs of a dataset, 
 based on the residuals, prediction variance (via variational inference), and 
 the softmax Hessian diagonal approximation. It follows the formula:
