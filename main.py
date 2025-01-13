@@ -114,8 +114,6 @@ def main():
     acc = []
     true_train_logits = []
     true_test_logits = []
-    sensi_train = []
-    sensi_test = []
 
 
     # Train/Test the model and retrieve the logits for Caf analysis
@@ -144,61 +142,52 @@ def main():
         logger.info(f"Accuracy on dataset {dataset_name}: {acc[-1]}")
         caf.history[f"test_acc_{dataset_name}"] = acc[-1]
 
-        # Get the true logits for each dataset up to the i-th dataset
-        # Each element in true_train_logits and true_test_logits is a list of all logits for each dataset up to the i-th dataset
-        true_train_logits_i = []
-        true_test_logits_i = []
-        for j in range(i+1):
-            true_train_logits_i.append(caf.get_true_probs(train=True, dataset_nbr=j))
-            true_test_logits_i.append(caf.get_true_probs(train=False, dataset_nbr=j))
+        # Get the true logits for dataset 0 in j-th training
+        true_test_logits.append(caf.get_true_probs(train=False, dataset_nbr=0))
 
-        true_train_logits.append(true_train_logits_i)
-        true_test_logits.append(true_test_logits_i)
+        if i == 0:
+            # Compute the sensibility of the 1st dataset
+            logger.info(f"Computing sensitivities for dataset {dataset_name} ...")
+            sensey_test = Sensitivity(model=model, dataloader=test_loaders[0], device=device)
+            sensi_test = sensey_test.get_sensitivities()
 
-        # Compute the sensibility of the i-th dataset
-        logger.info(f"Computing sensitivities for dataset {dataset_name} ...")
-        sensey_train = Sensitivity(model=model, dataloader=train_loaders[i], device=device)
-        sensey_test = Sensitivity(model=model, dataloader=test_loaders[i], device=device)
-        sensi_train.append(sensey_train.get_sensitivities())
-        sensi_test.append(sensey_test.get_sensitivities())
-
+    # Compute the sensibility of dataset 0 after training on all datasets
+    post_sensi_test = Sensitivity(model=model, dataloader=test_loaders[0], device=device)
+    post_sensi_test = post_sensi_test.get_sensitivities()
+    
         
-    # Get CAF scores for each dataset: [i][j] corresponds to the CAF score for dataset i, comparing state at training j with state at training j+1
-    # i represents the i-th dataset, j represents the j-th training
-    caf_scores_train = []
-    caf_scores_test = []
+    # Get CAF scores for the dataset 0 in each training
+    caf_scores_test_ratio = []
+    caf_scores_test_diff = []
     logger.info(f'Computing CAF score...')
     for i in range(len(train_loaders) - 1):
-        caf_score_train_i = []
-        caf_score_test_i = []
-        for j in range(i, len(train_loaders) - 1):
-            caf_score_train_i.append(caf.get_caf(old_true_probs=true_train_logits[j][i], new_true_probs=true_train_logits[j+1][i]))
-            caf_score_test_i.append(caf.get_caf(old_true_probs=true_test_logits[j][i], new_true_probs=true_test_logits[j+1][i]))
-        caf_scores_train.append(caf_score_train_i)
-        caf_scores_test.append(caf_score_test_i)
+        caf_scores_test_ratio.append(caf.get_caf(old_true_probs=true_test_logits[i], new_true_probs=true_test_logits[i+1], caf_type='ratio'))
+        caf_scores_test_diff.append(caf.get_caf(old_true_probs=true_test_logits[i], new_true_probs=true_test_logits[i+1], caf_type='difference'))
+
 
     # Plot the results
     result_directory = f'./results/{args.exp_tag}'
     os.makedirs(result_directory, exist_ok=True)
-    for i in range(len(caf_scores_train)):
-        for j in range(len(caf_scores_train[i])):
+    test_name_0 = args.datasets[0]
+    if args.split_indices is not None:
+        test_name_0 = f"{test_name_0}_{args.split_indices[0]}"
 
-            # For naming in printing and saving, we assume that the datasets are given in the same order as the train_loaders
-            train_name_i = args.datasets[i]
-            test_name_i = args.datasets[i]
-            train_name_j = args.datasets[i+j+1]
-            test_name_j = args.datasets[i+j+1]
-            if args.split_indices is not None:
-                train_name_i = f"{train_name_i}_{args.split_indices[i]}"
-                test_name_i = f"{test_name_i}_{args.split_indices[i]}"
-                train_name_j = f"{train_name_j}_{args.split_indices[i+j+1]}"
-                test_name_j = f"{test_name_j}_{args.split_indices[i+j+1]}"
+    for i in range(len(caf_scores_test_ratio)):        
+        test_name_i = args.datasets[i+1]
+        if args.split_indices is not None:
+            test_name_i = f"{test_name_i}_{args.split_indices[i+1]}"
 
-            plot_path_train = os.path.join(result_directory, f"train_{train_name_i}_{train_name_j}")
-            plot_path_test = os.path.join(result_directory, f"test_{test_name_i}_{test_name_j}")
+        plot_path_test_ratio = os.path.join(result_directory, f"test_{test_name_0}_{test_name_i}_pre_ratio")
+        plot_path_test_post_ratio = os.path.join(result_directory, f"test_{test_name_0}_{test_name_i}_post_ratio")
 
-            plot(sensitivity=sensi_train[i], caf=caf_scores_train[i][j], saving_path=plot_path_train, title=f"Train Dataset {train_name_i} after training on {train_name_j}")
-            plot(sensitivity=sensi_test[i], caf=caf_scores_test[i][j], saving_path=plot_path_test, title=f"Test Dataset {test_name_i} after training on {test_name_j}")
+        plot_path_test_diff = os.path.join(result_directory, f"test_{test_name_0}_{test_name_i}_pre_diff")
+        plot_path_test_post_diff = os.path.join(result_directory, f"test_{test_name_0}_{test_name_i}_post_diff")
+
+        plot(sensitivity=sensi_test, caf=caf_scores_test_ratio[i], saving_path=plot_path_test_ratio, title=f"Test Dataset {test_name_0} after training on {test_name_i} with pre-sensitivity and ratio")
+        plot(sensitivity=post_sensi_test, caf=caf_scores_test_ratio[i], saving_path=plot_path_test_post_ratio, title=f"Test Dataset {test_name_0} after training on {test_name_i} with post-sensitivity and ratio")
+
+        plot(sensitivity=sensi_test, caf=caf_scores_test_diff[i], saving_path=plot_path_test_diff, title=f"Test Dataset {test_name_0} after training on {test_name_i} with pre-sensitivity and difference")
+        plot(sensitivity=post_sensi_test, caf=caf_scores_test_diff[i], saving_path=plot_path_test_post_diff, title=f"Test Dataset {test_name_0} after training on {test_name_i} with post-sensitivity and difference")
 
 if "__main__" == __name__:
     main()

@@ -32,8 +32,8 @@ def plot(sensitivity, caf, saving_path: str, title: str):
     # Analyze relation between D_cf and D_sens
     plt.figure(figsize=(8,6))
     plt.scatter(sensitivity, caf, alpha=0.5)
-    plt.xlabel('Catastrophic Forgetting (D_cf)')
-    plt.ylabel('Sensitivity (D_sens)')
+    plt.ylabel('Catastrophic Forgetting (D_cf)')
+    plt.xlabel('Sensitivity (D_sens)')
     plt.title("\n".join(textwrap.wrap(title, 60)))
     plt.grid(True)
     plt.xscale('log')  # Log scale for x-axis

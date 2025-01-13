@@ -109,7 +109,7 @@ class Caf:
                     true_probs.append(probs[i, targets[i]].item())
         return torch.tensor(true_probs)
 
-    def get_caf(self, old_true_probs, new_true_probs):
+    def get_caf(self, old_true_probs, new_true_probs, caf_type="difference"):
         """
         Compute the catastrophic forgetting (CAF) score.
 
@@ -123,4 +123,6 @@ class Caf:
             The CAF score.
         """
         eps = 1e-10
-        return (new_true_probs / old_true_probs + eps)
+        if caf_type == "difference":
+            return (old_true_probs - new_true_probs)
+        return (old_true_probs / new_true_probs + eps)
