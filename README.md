@@ -53,6 +53,7 @@ CafSens/
 ├── models/                          # Local models
 ├── model_weights/                   # Saved model weights
 ├── results
+├── test_sensi.py                    # Test script to show sensitivity
 └── README.md                        # This file
 ```
 

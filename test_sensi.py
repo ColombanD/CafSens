@@ -15,7 +15,7 @@ import torch.nn as nn
 
 
 transform = transforms.Compose([transforms.ToTensor()])
-dataset = datasets.MNIST(root="./data", train=True, download=True, transform=transform)
+dataset = datasets.FashionMNIST(root="./data", train=True, download=True, transform=transform)
 
 # Example DataLoader
 dataloader = DataLoader(dataset, batch_size=50, shuffle=False)
@@ -30,7 +30,7 @@ optimizer = optim.Adam(model.parameters(), lr=0.001)
 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 
 criterion = nn.CrossEntropyLoss()
-epochs = 1
+epochs = 5
 for epoch in range(epochs):
     running_loss = 0.0
 
@@ -60,17 +60,21 @@ high_sens_images = [dataloader.dataset[i][0] for i in high_sens_indices]
 low_sens_images = [dataloader.dataset[i][0] for i in low_sens_indices]
 
 # Plot high sensitivity images
-fig, axs = plt.subplots(1, 10, figsize=(15, 3))
+fig, axs = plt.subplots(1, 5, figsize=(15, 3))
 for i, img in enumerate(high_sens_images):
     axs[i].imshow(img.squeeze(), cmap='gray')  # Remove the channel dimension and show as grayscale
     axs[i].axis('off')
     axs[i].set_title(f"High Sensitivity {i+1}")
+fig.savefig("high_sensitivity_images_fm.png", dpi=300, bbox_inches='tight')  # Save the high-sensitivity plot
+
 
 # Plot low sensitivity images
-fig, axs = plt.subplots(1, 10, figsize=(15, 3))
+fig, axs = plt.subplots(1, 5, figsize=(15, 3))
 for i, img in enumerate(low_sens_images):
     axs[i].imshow(img.squeeze(), cmap='gray')  # Remove the channel dimension and show as grayscale
     axs[i].axis('off')
     axs[i].set_title(f"Low Sensitivity {i+1}")
+fig.savefig("low_sensitivity_images_fm.png", dpi=300, bbox_inches='tight')  # Save the low-sensitivity plot
+
 
 plt.show()
