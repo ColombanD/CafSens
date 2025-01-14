@@ -2,6 +2,10 @@
 Description:
 Script for visualizing model sensitivity on different images.
 """
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 
 import matplotlib.pyplot as plt
 import torch

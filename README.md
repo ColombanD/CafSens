@@ -43,6 +43,8 @@ CafSens/
 │   ├── cifar10_cifar100_vgg16.yaml
 │   └── ...
 ├── utils/
+│   ├── test_sensi.py                # Test script to show sensitivity by plotting some images
+├── utils/
 │   ├── caf.py                       # Catastrophic Forgetting pipeline
 │   ├── classiloader.py              # Dataset partitioner for training on sequencial datasets
 │   ├── datasets.py                  # Dataset loading
@@ -53,7 +55,6 @@ CafSens/
 ├── models/                          # Local models
 ├── model_weights/                   # Saved model weights
 ├── results
-├── test_sensi.py                    # Test script to show sensitivity
 └── README.md                        # This file
 ```
 
