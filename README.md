@@ -63,7 +63,7 @@ CafSens/
 1. Clone this repository:
 
    ```bash
-   git clone https://github.com/YourUsername/CafSens.git
+   git clone https://github.com/ColombanD/CafSens.git
    cd CafSens
    ```
 
