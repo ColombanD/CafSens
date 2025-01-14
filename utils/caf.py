@@ -78,7 +78,7 @@ class Caf:
                 correct += (predicted == targets).sum().item()
                 total += targets.size(0)
         acc = correct / total
-        self.logger.info(f"[test nbr {test_nbr}] Accuracy: {acc:.4f}")
+        self.logger.info(f"Accuracy: {acc:.4f}")
         return acc  
 
     def get_true_probs(self, train=True, dataset_nbr=0):

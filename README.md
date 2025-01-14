@@ -101,13 +101,13 @@ For this example, the code will:
 Run `main.py` with specific arguments:
 - `--model`: model name
 - `--datasets`: name of the datasets to test. If and only if one is given, must specify the split-indices argument
-- `--split-indices`: if only one dataset is given, specify the partition of the dataset into the different classes, e.g: `"[0, 1, 2]" "[3, 4, 5]" "[6, 7, 8, 9]"`
+- `--split-indices`: if only one dataset is given, specify the partition of the dataset into the different classes, e.g: `"[0,2]" "[3,5]" "[6,9]"`
 - `--exp-tag`: experiment tag
 
 Examples:
 
 ```bash
-python main.py --model CNN --datasets MNIST --split-indices "[0, 1, 2]" "[3, 4, 5]" "[6, 7, 8, 9]" --exp-tag Basic_exp
+python main.py --model CNN --datasets MNIST --split-indices "[0,2]" "[3,5]" "[6,9]" --exp-tag Basic_exp
 ```
 
 ```bash

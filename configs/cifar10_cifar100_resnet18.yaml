@@ -1,0 +1,19 @@
+# Datasets
+train_ratio: 0.8
+datasets: ["CIFAR10", "CIFAR100"]
+
+# Model
+model: "Resnet18"
+
+# Training
+batch_size: 64
+epochs: 10
+learning_rate: 0.001
+
+# Logging
+logging_path: ./logs/cifar_10_cifar100_resnet18
+logging_level: INFO
+
+# Results
+exp_tag: "Cifar10 Cifar100 Resnet18 Experiment"
+

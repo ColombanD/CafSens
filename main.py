@@ -30,14 +30,14 @@ def load_config(config_path='./configs/default_config.yaml'):
         sys.exit(1)
 
 # Function to parse the command-line arguments
-# eg: python main.py --model CNN --datasets Cifar10 --split-indices "[0, 1, 2]" "[3, 4, 5]" "[6, 7, 8, 9]"
+# eg: python main.py --model CNN --datasets Cifar10 --split-indices "[0,2]" "[3,5]" "[6,9]"
 def parse_args():
     parser = argparse.ArgumentParser(description='Run the whole CAFSENS pipeline')
-    choices_model = ['CNN', 'Transformer', 'AlexNet', 'Resnet18']
+    choices_model = ['CNN', 'Transformer', 'AlexNet', 'Resnet18', 'Resnet50']
     choices_dataset = ['MNIST', 'FashionMNIST', 'CIFAR10', 'CIFAR100']
     parser.add_argument('--config', type=str, help='path to config file')
     parser.add_argument('--model', default='CNN', type=str, choices=choices_model, help='model to use')
-    parser.add_argument('--split-indices', default=None, nargs="+", type=str, help='If only one dataset was given, list of indices representing the classes to split the dataset into, e.g. "[0, 1, 2]" "[3, 4, 5]" "[6, 7, 8, 9]"')
+    parser.add_argument('--split-indices', default=None, nargs="+", type=str, help='If only one dataset was given, list of indices representing the classes to split the dataset into, e.g. "[0,2]" "[3,5]" "[6,9]"')
     parser.add_argument('--datasets', nargs="+", type=str, choices=choices_dataset, help='datasets to use, can be multiple')
     parser.add_argument('--exp-tag', type=str, default="Last Experiment", help="Experiment tag.")
     args = parser.parse_args()
@@ -49,6 +49,9 @@ def setup_logging(logging_path="./logs", logging_info="info"):
     logger.setLevel(logging_info)
 
     os.makedirs(os.path.dirname(logging_path), exist_ok=True)
+    # Delete the log file if it exists
+    if os.path.exists(logging_path):
+        os.remove(logging_path)
 
     # Create a file handler
     file_handler = RotatingFileHandler(logging_path, maxBytes=10000, backupCount=1)
@@ -125,7 +128,8 @@ def main():
         # For logging the names of the datasets
         dataset_name = args.datasets[i]
         if args.split_indices is not None:
-            dataset_name = f"{dataset_name}, classes {args.split_indices[i]}"
+            classes_name = args.split_indices[i].strip("[]").split(",")
+            dataset_name = f"{dataset_name}, classes {classes_name[0]} to {classes_name[1]}"
 
         # Train on dataset i
         logger.info(f"Training on dataset {dataset_name} ...")
@@ -147,11 +151,12 @@ def main():
 
         if i == 0:
             # Compute the sensibility of the 1st dataset
-            logger.info(f"Computing sensitivities for dataset {dataset_name} ...")
+            logger.info(f"Computing sensitivities before training on other tasks for dataset {dataset_name} ...")
             sensey_test = Sensitivity(model=model, dataloader=test_loaders[0], device=device)
             sensi_test = sensey_test.get_sensitivities()
 
     # Compute the sensibility of dataset 0 after training on all datasets
+    logger.info(f"Computing sensitivities after training for dataset {args.datasets[0]} ...")
     post_sensi_test = Sensitivity(model=model, dataloader=test_loaders[0], device=device)
     post_sensi_test = post_sensi_test.get_sensitivities()
     
@@ -170,12 +175,14 @@ def main():
     os.makedirs(result_directory, exist_ok=True)
     test_name_0 = args.datasets[0]
     if args.split_indices is not None:
-        test_name_0 = f"{test_name_0}_{args.split_indices[0]}"
+        classes_name = args.split_indices[0].strip("[]").split(",")
+        test_name_0 = f"{test_name_0}_{classes_name[0]}_{classes_name[1]}"
 
     for i in range(len(caf_scores_test_ratio)):        
         test_name_i = args.datasets[i+1]
         if args.split_indices is not None:
-            test_name_i = f"{test_name_i}_{args.split_indices[i+1]}"
+            classes_name_i = args.split_indices[i].strip("[]").split(",")
+            test_name_i = f"{test_name_i}_{classes_name_i[0]}_{classes_name_i[1]}"
 
         plot_path_test_ratio = os.path.join(result_directory, f"test_{test_name_0}_{test_name_i}_pre_ratio")
         plot_path_test_post_ratio = os.path.join(result_directory, f"test_{test_name_0}_{test_name_i}_post_ratio")
@@ -183,11 +190,11 @@ def main():
         plot_path_test_diff = os.path.join(result_directory, f"test_{test_name_0}_{test_name_i}_pre_diff")
         plot_path_test_post_diff = os.path.join(result_directory, f"test_{test_name_0}_{test_name_i}_post_diff")
 
-        plot(sensitivity=sensi_test, caf=caf_scores_test_ratio[i], saving_path=plot_path_test_ratio, title=f"Test Dataset {test_name_0} after training on {test_name_i} with pre-sensitivity and ratio")
-        plot(sensitivity=post_sensi_test, caf=caf_scores_test_ratio[i], saving_path=plot_path_test_post_ratio, title=f"Test Dataset {test_name_0} after training on {test_name_i} with post-sensitivity and ratio")
+        plot(sensitivity=sensi_test, caf=caf_scores_test_ratio[i], saving_path=plot_path_test_ratio, title=f"Test Dataset {test_name_0} after training on {test_name_i} with sensitivity computed just after training on {test_name_0} and Caf measured with the ratio of logits")
+        plot(sensitivity=post_sensi_test, caf=caf_scores_test_ratio[i], saving_path=plot_path_test_post_ratio, title=f"Test Dataset {test_name_0} after training on {test_name_i} with sensitivity computed after training on all datasets and Caf measured with the ratio of logits")
 
-        plot(sensitivity=sensi_test, caf=caf_scores_test_diff[i], saving_path=plot_path_test_diff, title=f"Test Dataset {test_name_0} after training on {test_name_i} with pre-sensitivity and difference")
-        plot(sensitivity=post_sensi_test, caf=caf_scores_test_diff[i], saving_path=plot_path_test_post_diff, title=f"Test Dataset {test_name_0} after training on {test_name_i} with post-sensitivity and difference")
+        plot(sensitivity=sensi_test, caf=caf_scores_test_diff[i], saving_path=plot_path_test_diff, title=f"Test Dataset {test_name_0} after training on {test_name_i} with sensitivity computed just after training on {test_name_0} and Caf measured with the difference of logits")
+        plot(sensitivity=post_sensi_test, caf=caf_scores_test_diff[i], saving_path=plot_path_test_post_diff, title=f"Test Dataset {test_name_0} after training on {test_name_i} with sensitivity computed after training on all datasets and Caf measured with the difference of logits")
 
 if "__main__" == __name__:
     main()

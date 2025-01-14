@@ -26,7 +26,7 @@ def tensor_to_numpy(data):
     else:
         raise TypeError(f"Unsupported type: {type(data)}. Expected a PyTorch tensor or NumPy array.")
 
-def plot(sensitivity, caf, saving_path: str, title: str):
+def plot(sensitivity, caf, saving_path: str, title: str, plot_type='log'):
     sensitivity = tensor_to_numpy(sensitivity)
     caf = tensor_to_numpy(caf)
     # Analyze relation between D_cf and D_sens
@@ -34,9 +34,9 @@ def plot(sensitivity, caf, saving_path: str, title: str):
     plt.scatter(sensitivity, caf, alpha=0.5)
     plt.ylabel('Catastrophic Forgetting (D_cf)')
     plt.xlabel('Sensitivity (D_sens)')
-    plt.title("\n".join(textwrap.wrap(title, 60)))
+    plt.title("\n".join(textwrap.wrap(title, 80)))
     plt.grid(True)
-    plt.xscale('log')  # Log scale for x-axis
-    plt.yscale('log')  # Log scale for y-axis
+    plt.xscale(plot_type)  # Log scale for x-axis
+    plt.yscale(plot_type)  # Log scale for y-axis
     plt.savefig(saving_path)
     plt.clf()

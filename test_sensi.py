@@ -1,3 +1,8 @@
+"""
+Description:
+Script for visualizing model sensitivity on different images.
+"""
+
 import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import DataLoader
@@ -8,11 +13,9 @@ from models.CNN import CNN
 import torch.optim as optim
 import torch.nn as nn
 
-# Assume 'dataloader' is your DataLoader and 'sensitivities' is a tensor or list of sensitivity values
-# Example: sensitivities = torch.tensor([0.2, 0.5, 0.9, 0.1, 0.7, ...])
 
 transform = transforms.Compose([transforms.ToTensor()])
-dataset = datasets.FashionMNIST(root="./data", train=True, download=True, transform=transform)
+dataset = datasets.MNIST(root="./data", train=True, download=True, transform=transform)
 
 # Example DataLoader
 dataloader = DataLoader(dataset, batch_size=50, shuffle=False)
@@ -49,8 +52,8 @@ sens = sensitivity.get_sensitivities()
 sens = torch.tensor(sens)
 
 # Sort sensitivities and get indices for high and low sensitivity images
-high_sens_indices = torch.argsort(sens, descending=True)[:10]  # top 5 high sensitivity
-low_sens_indices = torch.argsort(sens)[:10]  # top 5 low sensitivity
+high_sens_indices = torch.argsort(sens, descending=True)[:5]  # top 5 high sensitivity
+low_sens_indices = torch.argsort(sens)[:5]  # top 5 low sensitivity
 
 # Select the corresponding images
 high_sens_images = [dataloader.dataset[i][0] for i in high_sens_indices]
