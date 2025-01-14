@@ -96,3 +96,8 @@ models_weights/CNN_FashionMNIST, classes 0 to 4.pth
 models_weights/CNN_FashionMNIST, classes 5 to 9.pth
 models_weights/CNN_FashionMNIST.pth
 models_weights/CNN_MNIST.pth
+results/.DS_Store
+results/.DS_Store
+results/Cifar100 resnet18 Experiment/.DS_Store
+results/Cifar100 CNN Experiment/.DS_Store
+results/.DS_Store
