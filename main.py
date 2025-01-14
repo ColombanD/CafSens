@@ -190,11 +190,11 @@ def main():
         plot_path_test_diff = os.path.join(result_directory, f"test_{test_name_0}_{test_name_i}_pre_diff")
         plot_path_test_post_diff = os.path.join(result_directory, f"test_{test_name_0}_{test_name_i}_post_diff")
 
-        plot(sensitivity=sensi_test, caf=caf_scores_test_ratio[i], saving_path=plot_path_test_ratio, title=f"Test Dataset {test_name_0} after training on {test_name_i} with sensitivity computed just after training on {test_name_0} and Caf measured with the ratio of logits")
-        plot(sensitivity=post_sensi_test, caf=caf_scores_test_ratio[i], saving_path=plot_path_test_post_ratio, title=f"Test Dataset {test_name_0} after training on {test_name_i} with sensitivity computed after training on all datasets and Caf measured with the ratio of logits")
+        plot(sensitivity=sensi_test, caf=caf_scores_test_ratio[i], saving_path=plot_path_test_ratio, title=f"Test Dataset {test_name_0} after training on {test_name_i} with sensitivity computed just after training on {test_name_0} and Caf measured with the ratio of logits, model {args.model}")
+        plot(sensitivity=post_sensi_test, caf=caf_scores_test_ratio[i], saving_path=plot_path_test_post_ratio, title=f"Test Dataset {test_name_0} after training on {test_name_i} with sensitivity computed after training on all datasets and Caf measured with the ratio of logits, model {args.model}")
 
-        plot(sensitivity=sensi_test, caf=caf_scores_test_diff[i], saving_path=plot_path_test_diff, title=f"Test Dataset {test_name_0} after training on {test_name_i} with sensitivity computed just after training on {test_name_0} and Caf measured with the difference of logits")
-        plot(sensitivity=post_sensi_test, caf=caf_scores_test_diff[i], saving_path=plot_path_test_post_diff, title=f"Test Dataset {test_name_0} after training on {test_name_i} with sensitivity computed after training on all datasets and Caf measured with the difference of logits")
+        plot(sensitivity=sensi_test, caf=caf_scores_test_diff[i], saving_path=plot_path_test_diff, title=f"Test Dataset {test_name_0} after training on {test_name_i} with sensitivity computed just after training on {test_name_0} and Caf measured with the difference of logits, model {args.model}")
+        plot(sensitivity=post_sensi_test, caf=caf_scores_test_diff[i], saving_path=plot_path_test_post_diff, title=f"Test Dataset {test_name_0} after training on {test_name_i} with sensitivity computed after training on all datasets and Caf measured with the difference of logits, model {args.model}")
 
 if "__main__" == __name__:
     main()
