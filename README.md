@@ -27,8 +27,8 @@ Catastrophic Forgetting is the phenomenon where a neural network forgets previou
 ## Features
 
 - **Config-Driven Workflow**: Use YAML files to configure datasets, models, and hyperparameters.
-- **Flexible Dataset Handling**: Supports datasets like MNIST, FashionMNIST, CIFAR10, CIFAR100, and Tiny ImageNet.
-- **Custom Model Creation**: Use architectures like ResNet18, AlexNet, VGG16, or any model from `torchvision.models`.
+- **Flexible Dataset Handling**: Supports datasets like MNIST, FashionMNIST, CIFAR10 and CIFAR100.
+- **Custom Model Creation**: Use architectures like ResNet18, Resnet50, or any model from `torchvision.models`.
 
 ## Directory Structure
 
@@ -37,10 +37,9 @@ CafSens/
 ├── main.py                          # Main logic of project
 ├── analyze.py                       # Analysis script
 ├── configs/                         # YAML config files
-│   ├── mnist_fashion_resnet18.yaml
-│   ├── mnist_fashion_alexnet.yaml
+│   ├── mnist_cnn.yaml
+│   ├── mnist_fashionmnist_cnn.yaml
 │   ├── cifar10_cifar100_resnet18.yaml
-│   ├── cifar10_cifar100_vgg16.yaml
 │   └── ...
 ├── sensitivities
 │   ├── test_sensi.py                # Test script to show sensitivity by plotting some images
@@ -96,7 +95,7 @@ For this example, the code will:
 - Train on MNIST (1st dataset),
 - Train on FashionMNIST (2nd dataset),
 - Compute Sensitivity and Catastrophic Forgetting for MNIST (old dataset)
-- plot the results
+- plot the results under `results/`
 
 ### B. Run a custom experiment
 
@@ -124,9 +123,9 @@ Type `python main.py -h` for help.
 YAML files in `configs/` define experiments. Key fields:
 
 - `datasets`: Dataset names (e.g., MNIST, CIFAR10).
-- `model`: Model name (e.g., ResNet18, AlexNet).
+- `model`: Model name (e.g., Resnet18, CNN).
 
-### Example (mnist_fashionmnist_alexnet.yaml):
+### Example (mnist_fashionmnist_resnet18.yaml):
 
 ```yaml
 # Datasets
@@ -142,9 +141,9 @@ epochs: 10
 learning_rate: 0.001
 
 # Logging
-logging_path: ./logs/log
+logging_path: ./logs/mnist_fashionmnist_resnet18
 logging_level: INFO
 
 # Results
-exp_tag: "MNIST FashionMNIST resnet18 Experiment"
+exp_tag: "MNIST FashionMNIST Resnet18 Experiment"
 ```
