@@ -20,7 +20,7 @@ Welcome to **CafSens**, a codebase designed to study catastrophic forgetting and
 Catastrophic Forgetting is the phenomenon where a neural network forgets previously learned knowledge upon learning new tasks. This codebase helps you:
 
 - Train a model on a sequence of datasets
-- Measure how much it forgets each previously knowned dataset once trained on a new one,
+- Measure how much it forgets each previously known dataset once trained on a new one,
 - Compute model sensitivity via a `Sensitivity` class,
 - Correlate forgetting with sensitivity to see if samples that are “more sensitive” are also “forgotten more.”
 
@@ -42,7 +42,7 @@ CafSens/
 │   ├── cifar10_cifar100_resnet18.yaml
 │   ├── cifar10_cifar100_vgg16.yaml
 │   └── ...
-├── utils/
+├── sensitivities
 │   ├── test_sensi.py                # Test script to show sensitivity by plotting some images
 ├── utils/
 │   ├── caf.py                       # Catastrophic Forgetting pipeline
