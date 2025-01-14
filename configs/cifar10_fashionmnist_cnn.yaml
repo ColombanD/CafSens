@@ -1,0 +1,19 @@
+# Datasets
+train_ratio: 0.8
+datasets: ["CIFAR10", "FashionMNIST"]
+
+# Model
+model: "CNN_rgb"
+
+# Training
+batch_size: 64
+epochs: 10
+learning_rate: 0.001
+
+# Logging
+logging_path: ./logs/cifar10_fashionmnist_cnn
+logging_level: INFO
+
+# Results
+exp_tag: "CIFAR10 FashionMNIST CNN Experiment"
+

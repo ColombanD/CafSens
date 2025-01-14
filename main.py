@@ -33,7 +33,7 @@ def load_config(config_path='./configs/default_config.yaml'):
 # eg: python main.py --model CNN --datasets Cifar10 --split-indices "[0,2]" "[3,5]" "[6,9]"
 def parse_args():
     parser = argparse.ArgumentParser(description='Run the whole CAFSENS pipeline')
-    choices_model = ['CNN', 'Transformer', 'AlexNet', 'Resnet18', 'Resnet50']
+    choices_model = ['CNN', 'CNN_rgb', 'Resnet18', 'Resnet50']
     choices_dataset = ['MNIST', 'FashionMNIST', 'CIFAR10', 'CIFAR100']
     parser.add_argument('--config', type=str, help='path to config file')
     parser.add_argument('--model', default='CNN', type=str, choices=choices_model, help='model to use')
@@ -181,7 +181,7 @@ def main():
     for i in range(len(caf_scores_test_ratio)):        
         test_name_i = args.datasets[i+1]
         if args.split_indices is not None:
-            classes_name_i = args.split_indices[i].strip("[]").split(",")
+            classes_name_i = args.split_indices[i+1].strip("[]").split(",")
             test_name_i = f"{test_name_i}_{classes_name_i[0]}_{classes_name_i[1]}"
 
         plot_path_test_ratio = os.path.join(result_directory, f"test_{test_name_0}_{test_name_i}_pre_ratio")

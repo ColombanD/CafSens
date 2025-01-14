@@ -24,3 +24,9 @@ def load_transform(model_name):
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
             ])
+    if model_name == 'CNN_rgb':
+        return transforms.Compose([
+            transforms.Grayscale(num_output_channels=3),  # Convert to RGB
+            transforms.Resize((28, 28)),                 # Resize to 32x32
+            transforms.ToTensor(),                       # Convert to tensor
+        ])

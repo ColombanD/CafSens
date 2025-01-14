@@ -12,6 +12,8 @@ def load_model(model_name, gray_scale, num_classes):
     
     if model_name == 'CNN':
         return CNN(gray_scale=gray_scale, num_classes=num_classes)
+    if model_name == 'CNN_rgb':
+        return CNN(gray_scale=False, num_classes=num_classes)
     elif model_name == 'Resnet18':
         model = models.resnet18(num_classes=num_classes)
         if gray_scale:
