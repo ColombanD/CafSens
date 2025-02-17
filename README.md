@@ -14,7 +14,8 @@ Welcome to **CafSens**, a codebase designed to study catastrophic forgetting and
 4. [Installation & Environment](#installation--environment)
 5. [Usage](#usage)
 6. [Configuration Files](#configuration-files)
-7. [References](#references)
+7. [Final Report](#final-report)
+8. [References](#references)
 
 ## Overview
 
@@ -148,6 +149,9 @@ logging_level: INFO
 # Results
 exp_tag: "MNIST FashionMNIST Resnet18 Experiment"
 ```
+
+## Final Report
+You can find the final report on [Open Review](https://openreview.net/forum?id=nN8pv1COcf&referrer=%5BAuthor%20Console%5D(%2Fgroup%3Fid%3DETHz.ch%2F2024%2FCourse%2FDL_Reports_Early_Deadline%2FAuthors%23your-submissions))
 
 ## References
 -[memory-pertubation](https://github.com/team-approx-bayes/memory-perturbation?tab=readme-ov-file): Obtain sensitivities of data, see utils/sensitivity.py
